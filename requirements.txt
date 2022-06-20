@@ -1,0 +1,9 @@
+coverage
+jupyterlab
+libroadrunner
+lmfit
+nose
+numpy
+pandas
+pylint
+tellurium
