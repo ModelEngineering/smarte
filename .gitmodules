@@ -1,0 +1,3 @@
+[submodule "analyzeSBML"]
+	path = analyzeSBML
+	url = https://github.com/ModelEngineering/analyzeSBML.git

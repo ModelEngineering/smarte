@@ -1,3 +1,3 @@
 #!/bin/bash
-PYTHONPATH=${PYTHONPATH}:`pwd`
+PYTHONPATH=${PYTHONPATH}:`pwd`/analyzeSBML:`pwd`
 export PYTHONPATH
