@@ -9,4 +9,5 @@ numpy
 pandas
 pylint
 tellurium
+tk
 tqdm
