@@ -1,1 +1,1 @@
-from smarte.smarte_core import SmarteCore
+from smarte.sbml_fitter import SBMLFitter

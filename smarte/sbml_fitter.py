@@ -5,29 +5,26 @@
 
 Core logic of SMARTE.
 
-TODO:
-2. Do fit using initial lmfit and SMARTE
-3. Optionally specify ouput columns 
 """
 
 import smarte
 import smarte.constants as cn
-import analyzeSBML as anl
 
+import analyzeSBML as anl
 import copy
+import fitterpp as fpp
 import lmfit
 import numpy as np
 import tellurium as te
 import typing
 
 
-END_TIME = 5
+class SBMLFitter():
 
-
-class SmartFitter():
-
-    def __init__(self, model_reference:str, data:pd.DataFrame, parameters:lmfit.Parameters,
-          fitter_methods=None, end_time=END_TIME):
+    def __init__(self, model_reference:str, data,
+          parameters:lmfit.Parameters, fitter_methods=None,
+          start_time= cn.START_TIME, end_time=cn.END_TIME,
+          point_density=10):
         """
         Constructs estimates of parameter values.
 
@@ -36,16 +33,21 @@ class SmartFitter():
         model_reference: ExtendedRoadRunner/str
             roadrunner model or antimony model
         data: DataFrame or Timeseries or NamedArray or csv file
-        params: lmfit.parameters
+            Column names must be the same as the names used in roadrunner output.
+            For example, the chemical species "GLU" is denoted by "[GLU]"
+        parameters: lmfit.Parameters
             range and initial values of parameters
         fitting_methods: list-str (e.g., ["differential_evolution", "leastsq"])
+        start_time: float
+            start time for the simulation
         end_time: float
             end time for the simulation
+        point_density: float
+            number of points simulated for each time unit
 
         Usage
         -----
-                          ]
-        smarte = SmarteCore(roadrunnerModel, "observed.csv",
+        smarte = SBMLFitter(roadrunnerModel, "observed.csv",
             parameters_to_fit=parameters_to_fit)
         core.fit()  # Do the fit
         """
@@ -54,11 +56,13 @@ class SmartFitter():
         self.data_columns = list(self.data_ts.columns)  # non-time columns
         self.parameters = parameters
         self.end_time = end_time
-        self.num_point = int(self.point_density*self.end_time)
+        self.start_time = start_time
+        self.num_point = int(point_density*(self.end_time - start_time)) + 1
         # Set up the fitter
-        self.fitter = Fitterpp(self._simulate, self.parameters, self.data_df, methods=fitter_methods)
+        self.fitter = fpp.Fitterpp(self._simulate, self.parameters, self.data_ts,
+              methods=fitter_methods)
      
-    def _simulate(self, is_dataframe=True, **parameter_dct):
+    def _simulate(self, is_dataframe=False, **parameter_dct):
         """
         Runs the simulation for particular parameter values.
  
@@ -73,20 +77,22 @@ class SmartFitter():
         Timeseries if is_dataframe
             columns: columns in data
             index: time in ms
+        numpy.array if not is_dataframe
+            columns: columns in data
         """
         # Set the value of the parameters
         self.model.set(parameter_dct)
         # Run the simulation
         self.model.roadrunner.reset()
         if is_dataframe:
-            result = self.model.simulate(0, self.end_time, self.num_point,
-                  self.data_columns)
-        else:
             columns = list(self.data_columns)
             columns.append(cn.TIME)
-            arr = self.model.simulate(0, self.end_time, self.num_point,
+            arr = self.model.simulate(self.start_time, self.end_time, self.num_point,
                   columns)
-            result = Timeseries(arr)
+            result = anl.Timeseries(arr)
+        else:
+            result = self.model.roadrunner.simulate(self.start_time, self.end_time,
+                  self.num_point, self.data_columns)
         return result
 
     def fit(self, parameters:lmfit.Parameters, fitting_methods=None):
@@ -100,5 +106,4 @@ class SmartFitter():
         sfitter = Smarte(sbml_model, data)
         sfitter.fit(parameters)
         """
-        self.fitter = Fitterpp(self._simulate, parameters, self.data_df)
         self.fitter.execute()
