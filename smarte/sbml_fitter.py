@@ -95,7 +95,7 @@ class SBMLFitter():
                   self.num_point, self.data_columns)
         return result
 
-    def fit(self, parameters:lmfit.Parameters, fitting_methods=None):
+    def fit(self):
         """
         Fits the model by adjusting values of parameters based on
         differences between simulated and provided values of

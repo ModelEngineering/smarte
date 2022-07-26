@@ -3,6 +3,7 @@ import analyzeSBML as anl
 import fitterpp as fpp
 import smarte.constants as cn
 
+import copy
 import lmfit
 import matplotlib
 import pandas as pd
@@ -11,8 +12,8 @@ import tellurium as te
 import unittest
 
 
-IGNORE_TEST = False
-IS_PLOT = False
+IGNORE_TEST = True
+IS_PLOT = True
 if IS_PLOT:
     matplotlib.use("TkAgg")
 MODEL = """
@@ -28,6 +29,9 @@ k2 = 2
 k3 = 3
 k4 = 4
 """
+PARAMETER_NAMES = ["k1", "k2", "k3", "k4"]
+RR = te.loada(MODEL)
+PARAMETER_DCT = {n: RR[n] for n in PARAMETER_NAMES}
 POINT_DENSITY = 2
 END_TIME = 5
 NUM_POINT = END_TIME*POINT_DENSITY + 1
@@ -36,6 +40,9 @@ arr = rr.simulate(0, END_TIME, NUM_POINT)
 TS = anl.Timeseries(arr)
 if False:
     anl.plotOneTS(TS)
+PARAMETERS = lmfit.Parameters()
+for name in PARAMETER_NAMES:
+    PARAMETERS.add(name=name, value=0, min=0, max=10)
 
         
 
@@ -45,9 +52,7 @@ if False:
 class TestSBMLFitter(unittest.TestCase):
 
     def setUp(self):
-        self.parameters = lmfit.Parameters()
-        for name in ["k1", "k2", "k3", "k4"]:
-            self.parameters.add(name=name, value=0, min=0, max=10)
+        self.parameters = copy.deepcopy(PARAMETERS)
         self.sfitter = smt.SBMLFitter(MODEL, TS, self.parameters,
               point_density=POINT_DENSITY)
 
@@ -62,10 +67,38 @@ class TestSBMLFitter(unittest.TestCase):
         df = self.sfitter._simulate(is_dataframe=True, **{"k1": 4, "k2": 4})
         self.assertTrue(np.abs(df.loc[5000, "S3"] - 10) < 0.1)
 
-    def testFit(self):
+    def testFitAllColumns(self):
         if IGNORE_TEST:
             return
+        parameter_dct = dict(PARAMETER_DCT)
+        del parameter_dct["k3"]
+        self.sfitter.fit()
+        values_dct = dict(self.sfitter.fitter.final_params.valuesdict())
+        for name, value in parameter_dct.items():
+            self.assertTrue(np.isclose(value, values_dct[name]))
 
+    def testFitS1S4(self):
+        # TESTING
+        def test(ts, is_fail=False):
+            sfitter = smt.SBMLFitter(MODEL, ts, self.parameters,
+                  point_density=POINT_DENSITY)
+            parameter_dct = dict(PARAMETER_DCT)
+            del parameter_dct["k3"]
+            sfitter.fit()
+            values_dct = dict(sfitter.fitter.final_params.valuesdict())
+            trues = True
+            for name, value in parameter_dct.items():
+                trues = trues and np.isclose(value, values_dct[name])
+            if is_fail:
+                self.assertFalse(trues)
+            else:
+                self.assertTrue(trues)
+        #
+        test(TS)
+        ts = anl.Timeseries(TS[["S1", "S3"]])
+        test(ts)
+        ts = anl.Timeseries(TS[["S1"]])
+        test(ts, is_fail=True)
 
 
 if __name__ == '__main__':
