@@ -87,13 +87,18 @@ class SBMLFitter():
         if is_dataframe:
             columns = list(self.data_columns)
             columns.append(cn.TIME)
-            arr = self.model.simulate(self.start_time, self.end_time, self.num_point,
-                  columns)
+            arr = self.model.roadrunner.simulate(self.start_time,
+                  self.end_time, self.num_point, columns)
             result = anl.Timeseries(arr)
         else:
-            result = self.model.roadrunner.simulate(self.start_time, self.end_time,
-                  self.num_point, self.data_columns)
-        return result
+            result = self.model.roadrunner.simulate(self.start_time,
+                  self.end_time, self.num_point, self.data_columns)
+            if not isinstance(result, np.ndarray):
+                import pdb; pdb.set_trace()
+            if not isinstance(result[0][0], float):
+                import pdb; pdb.set_trace()
+            print("***", result)
+        return [0 if np.isclose(v, 0) else v for v in result]
 
     def fit(self):
         """

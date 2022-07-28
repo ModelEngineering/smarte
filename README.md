@@ -1,4 +1,9 @@
-# Smart Estimation of Parameters in Reaction Networks
+# SMART ESTIMATION OF PARAMETERS IN REACTION NETWORKS (SMARTE)
+
+# Repository Structure
+* `docs` - sphinx documentation
+* `tools` - standalone scripts
+* `smarte` - project code
 
 # Developer notes
 * Use python3.9 (since there's a Tellurium problem with 3.10)

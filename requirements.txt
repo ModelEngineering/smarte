@@ -1,4 +1,5 @@
 coverage
+docstring_expander
 jupyterlab
 libroadrunner
 lmfit
@@ -6,6 +7,7 @@ nose2
 numpy
 pandas
 pylint
+seaborn
 tellurium
 tk
 tqdm

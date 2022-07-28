@@ -18,9 +18,11 @@ if IS_PLOT:
     matplotlib.use("TkAgg")
 MODEL = """
 J1: S1 -> S2; k1*S1
+J1a: $X0 -> S4; k5*X0
 J2: S2 -> S3; k2*S2
 J3: S3 -> S1; k4*S3
 
+X5 = 10
 S1 = 10
 S2 = 0
 S3 = 0
@@ -28,6 +30,7 @@ k1 = 1
 k2 = 2
 k3 = 3
 k4 = 4
+k5 = 1
 """
 PARAMETER_NAMES = ["k1", "k2", "k3", "k4"]
 RR = te.loada(MODEL)
@@ -97,7 +100,7 @@ class TestSBMLFitter(unittest.TestCase):
         test(TS)
         ts = anl.Timeseries(TS[["S1", "S3"]])
         test(ts)
-        ts = anl.Timeseries(TS[["S1"]])
+        ts = anl.Timeseries(TS[["S4"]])
         test(ts, is_fail=True)
 
 
