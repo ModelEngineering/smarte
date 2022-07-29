@@ -15,8 +15,12 @@ import copy
 import fitterpp as fpp
 import lmfit
 import numpy as np
+import os
 import tellurium as te
 import typing
+
+
+PREFIX = "BIOMD0000000%03d.xml"
 
 
 class SBMLFitter():
@@ -54,13 +58,37 @@ class SBMLFitter():
         self.model = anl.Model(model_reference)
         self.data_ts = anl.Timeseries(data)
         self.data_columns = list(self.data_ts.columns)  # non-time columns
-        self.parameters = parameters
+        self.parameters = self._findValidParameters(parameters)
         self.end_time = end_time
         self.start_time = start_time
         self.num_point = int(point_density*(self.end_time - start_time)) + 1
         # Set up the fitter
         self.fitter = fpp.Fitterpp(self._simulate, self.parameters, self.data_ts,
               methods=fitter_methods)
+
+    @staticmethod
+    def _findValidParameters(parameters):
+        """
+        Returns a subset of parameters that can be modified.
+
+        Parameters
+        ----------
+        parameters: lmfit.Parameters(parameters to evaluate)
+        
+        Returns
+        -------
+        lmfit.Parameters
+        """
+        parameter_dct = parameters.valuesdict()
+        new_parameters = lmfit.Parameters()
+        for name, value in parameter_dct.items():
+            if value > 0:
+                try:
+                    model.set({name: value})
+                    new_parameters.add(parameters.get(name))
+                except:
+                    continue
+        return new_parameters
      
     def _simulate(self, is_dataframe=False, **parameter_dct):
         """
@@ -93,12 +121,7 @@ class SBMLFitter():
         else:
             result = self.model.roadrunner.simulate(self.start_time,
                   self.end_time, self.num_point, self.data_columns)
-            if not isinstance(result, np.ndarray):
-                import pdb; pdb.set_trace()
-            if not isinstance(result[0][0], float):
-                import pdb; pdb.set_trace()
-            print("***", result)
-        return [0 if np.isclose(v, 0) else v for v in result]
+        return result
 
     def fit(self):
         """
@@ -112,3 +135,43 @@ class SBMLFitter():
         sfitter.fit(parameters)
         """
         self.fitter.execute()
+
+    def evaluate(self, true_parameters):
+        """
+        Evaluates the accuracy of a fit by comparing fitted values with the
+        true value of parameters.
+
+        Parameters
+        ----------
+        true_parameters: lmfit.Parameters
+        
+        Returns
+        -------
+        pd.Series
+            index: parameter name
+            value: fractional deviation from true value
+        """
+        if self.fitter is None:
+            self.fit()
+        parameter_dct = true_parameters.valuesdict()
+        self.fit()
+        value_dct = self.fitter.final_params.valuesdict()
+        error_dct = {n: np.nan if v == 0 else (parameter_dct[n] - v)/parameter_dct[n]
+               for n, v in value_dct.items()}
+        # Calculate estimation errors
+        return pd.Series(error_dct, index=value_dct.keys())
+
+    @staticmethod
+    def getModelFromDataPath(model_num):
+        """
+        Gets a numbered model.
+
+        Parameters
+        ----------
+        model_num: int
+        
+        Returns
+        -------
+        Model
+        """
+        return Model(os.path.join(cn.DATA_DIR, PREFIX % model_num))

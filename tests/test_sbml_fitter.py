@@ -12,8 +12,8 @@ import tellurium as te
 import unittest
 
 
-IGNORE_TEST = True
-IS_PLOT = True
+IGNORE_TEST = False
+IS_PLOT = False
 if IS_PLOT:
     matplotlib.use("TkAgg")
 MODEL = """
@@ -82,7 +82,8 @@ class TestSBMLFitter(unittest.TestCase):
             self.assertTrue(np.isclose(value, values_dct[name]))
 
     def testFitS1S4(self):
-        # TESTING
+        if IGNORE_TEST:
+            return
         def test(ts, is_fail=False):
             sfitter = smt.SBMLFitter(MODEL, ts, self.parameters,
                   point_density=POINT_DENSITY)
@@ -103,6 +104,16 @@ class TestSBMLFitter(unittest.TestCase):
         test(ts)
         ts = anl.Timeseries(TS[["S4"]])
         test(ts, is_fail=True)
+
+    def testFindValidParameters(self):
+        if IGNORE_TEST:
+            return
+        raise RuntimeError("Not implemented.")
+
+    def testEvaluate(self):
+        if IGNORE_TEST:
+            return
+        raise RuntimeError("Not implemented.")
 
 
 if __name__ == '__main__':
