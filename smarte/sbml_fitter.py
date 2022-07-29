@@ -16,6 +16,7 @@ import fitterpp as fpp
 import lmfit
 import numpy as np
 import os
+import pandas as pd
 import tellurium as te
 import typing
 
@@ -25,8 +26,10 @@ PREFIX = "BIOMD0000000%03d.xml"
 
 class SBMLFitter():
 
-    def __init__(self, model_reference:str, data,
-          parameters:lmfit.Parameters, fitter_methods=None,
+    def __init__(self, model_reference:str,
+          parameters:lmfit.Parameters,
+          data,
+          fitter_methods=None,
           start_time= cn.START_TIME, end_time=cn.END_TIME,
           point_density=10):
         """
@@ -51,8 +54,7 @@ class SBMLFitter():
 
         Usage
         -----
-        smarte = SBMLFitter(roadrunnerModel, "observed.csv",
-            parameters_to_fit=parameters_to_fit)
+        smarte = SBMLFitter(roadrunnerModel, parameters, "observed.csv")
         core.fit()  # Do the fit
         """
         self.model = anl.Model(model_reference)
@@ -66,8 +68,7 @@ class SBMLFitter():
         self.fitter = fpp.Fitterpp(self._simulate, self.parameters, self.data_ts,
               methods=fitter_methods)
 
-    @staticmethod
-    def _findValidParameters(parameters):
+    def _findValidParameters(self, parameters):
         """
         Returns a subset of parameters that can be modified.
 
@@ -82,12 +83,11 @@ class SBMLFitter():
         parameter_dct = parameters.valuesdict()
         new_parameters = lmfit.Parameters()
         for name, value in parameter_dct.items():
-            if value > 0:
-                try:
-                    model.set({name: value})
-                    new_parameters.add(parameters.get(name))
-                except:
-                    continue
+            try:
+                self.model.set({name: value})
+                new_parameters.add(parameters.get(name))
+            except:
+                continue
         return new_parameters
      
     def _simulate(self, is_dataframe=False, **parameter_dct):
@@ -155,7 +155,7 @@ class SBMLFitter():
             self.fit()
         parameter_dct = true_parameters.valuesdict()
         self.fit()
-        value_dct = self.fitter.final_params.valuesdict()
+        value_dct = dict(self.fitter.final_params.valuesdict())
         error_dct = {n: np.nan if v == 0 else (parameter_dct[n] - v)/parameter_dct[n]
                for n, v in value_dct.items()}
         # Calculate estimation errors
