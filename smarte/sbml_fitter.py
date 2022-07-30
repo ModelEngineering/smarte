@@ -9,6 +9,8 @@ Core logic of SMARTE.
 
 import smarte
 import smarte.constants as cn
+import fitterpp as fpp
+import analyzeSBML as anl
 
 import analyzeSBML as anl
 import copy
@@ -60,7 +62,7 @@ class SBMLFitter():
         self.model = anl.Model(model_reference)
         self.data_ts = anl.Timeseries(data)
         self.data_columns = list(self.data_ts.columns)  # non-time columns
-        self.parameters = self._findValidParameters(parameters)
+        self.parameters = self.subsetToMuteableParameters(parameters)
         self.end_time = end_time
         self.start_time = start_time
         self.num_point = int(point_density*(self.end_time - start_time)) + 1
@@ -68,7 +70,7 @@ class SBMLFitter():
         self.fitter = fpp.Fitterpp(self._simulate, self.parameters, self.data_ts,
               methods=fitter_methods)
 
-    def _findValidParameters(self, parameters):
+    def subsetToMuteableParameters(self, parameters):
         """
         Returns a subset of parameters that can be modified.
 
@@ -175,3 +177,32 @@ class SBMLFitter():
         Model
         """
         return Model(os.path.join(cn.DATA_DIR, PREFIX % model_num))
+
+    @classmethod
+    def evaluateBioModel(cls, model_num, noise_mag):
+        """
+        Compares the fitted and actual values of model parameters for a BioModel.
+    
+        Parameters
+        ----------
+        model_num: int (model number in data directory)
+        noise_mag: float (standard deviation added to true model)
+        
+        Returns
+        -------
+        Series
+            index: parameter name
+            value: fraction error from parameter estimate
+        """
+        model = anl.Model.getDataPath(model_num)
+        observed_ts = model.simulate(noise_mag=noise_mag)
+        # Construct true parameters
+        parameter_dct = model.get(model.parameter_names)
+        true_parameters = fpp.dictToParameters(parameter_dct)
+        evaluate_parameters = fpp.dictToParameters(parameter_dct,
+            min_frac=F_LOWER, max_frac=F_HIGHER, value_frac=F_LOWER)
+        # Do the fit and evaluation
+        sfitter = smt.SBMLFitter(path, evaluate_parameters, observed_ts)
+        true_parameters = sfitter.subsetToMuteableParameters(true_parameters)
+        ser = sfitter.evaluate(true_parameters)
+        return ser

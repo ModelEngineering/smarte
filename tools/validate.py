@@ -34,16 +34,12 @@ def main(model_num, noise_mag):
     """
     model = smt.Fitterpp.getDataPath(model_num)
     parameter_dct = model.get(model.parameter_names)
-    data_ts = model.simulate()
-    nrow = len(data_ts)
-    ncol = len(data_ts.columns)
-    random_arr = noise_mag*np.random.rand(nrow*ncol)
-    random_arr = np.reshape(random_arr, (nrow, ncol))
-    random_df = pd.DataFrame(random_arr, columns=data_ts.columns,
-        index=data_ts.index)
-    observed_df = pd.DataFrame(data_ts) + random_df
-    observed_ts = anl.Timeseries(observed_df)
-    # Do the fit
+    observed_ts = model.simulate(noise_mag=noise_mag)
+    # Construct true parameters
+    true_parameters = lmfit.Parameters()
+    for name, value in parameter_dct.items():
+        true_parameters.add(name=name, value=value, min=value, max=value)
+    # Initialize parameters
     parameters = lmfit.Parameters()
     for name, value in parameter_dct.items():
         if value > 0:
@@ -53,13 +49,8 @@ def main(model_num, noise_mag):
                 continue
             parameters.add(name, min=value*F_LOWER, max=value*F_HIGHER,
                 value=value*F_INITIAL)
-    sfitter = smt.SBMLFitter(path, observed_ts, parameters)
-    sfitter.fit()
-    value_dct = sfitter.fitter.final_params.valuesdict()
-    error_dct = {n: np.nan if v == 0 else (parameter_dct[n] - v)/parameter_dct[n]
-           for n, v in value_dct.items()}
-    # Calculate estimation errors
-    error_ser = pd.Series(error_dct, index=value_dct.keys())
+    sfitter = smt.SBMLFitter(path, parameters, observed_ts)
+    ser = sfitter.evaluate(true_parameters)
     import pdb; pdb.set_trace()
 
 if __name__ == '__main__':

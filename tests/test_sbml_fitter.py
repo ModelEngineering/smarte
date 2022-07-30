@@ -12,8 +12,8 @@ import tellurium as te
 import unittest
 
 
-IGNORE_TEST = False
-IS_PLOT = False
+IGNORE_TEST = True
+IS_PLOT = True
 if IS_PLOT:
     matplotlib.use("TkAgg")
 MODEL = """
@@ -103,13 +103,13 @@ class TestSBMLFitter(unittest.TestCase):
         ts = anl.Timeseries(TS[["S4"]])
         test(ts, is_fail=True)
 
-    def testFindValidParameters(self):
+    def testSubsetToMuteableParameters(self):
         if IGNORE_TEST:
             return
         def test(parameters, excepts=None):
             if excepts is None:
                 excepts = []
-            new_parameters = self.sfitter._findValidParameters(parameters)
+            new_parameters = self.sfitter.subsetToMuteableParameters(parameters)
             for name, value in parameters.valuesdict().items():
                 if name in excepts:
                     continue
@@ -126,6 +126,13 @@ class TestSBMLFitter(unittest.TestCase):
         ser = self.sfitter.evaluate(TRUE_PARAMETERS)
         self.assertTrue(isinstance(ser, pd.Series))
         self.assertLess(np.abs(ser.mean()), 0.001)
+        
+    def testEvaluateBioModel(self):
+        # TESTING
+        ser = smt.SBMLFitter.evaluateBioModel(122, 0)
+        import pdb; pdb.set_trace()
+
+
 
 
 if __name__ == '__main__':
