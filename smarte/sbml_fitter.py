@@ -22,13 +22,17 @@ import pandas as pd
 import tellurium as te
 import typing
 
+F_MIN = 0.5
+F_MAX = 2
+F_VALUE = F_MIN
+
 
 class SBMLFitter():
 
     def __init__(self, model_reference:str,
           parameters:lmfit.Parameters,
           data,
-          fitter_methods=None,
+          fitter_methods=None, is_collect=False,
           start_time= cn.START_TIME, end_time=cn.END_TIME,
           point_density=10):
         """
@@ -37,7 +41,7 @@ class SBMLFitter():
         Parameters
         ----------
         model_reference: ExtendedRoadRunner/str
-            roadrunner model or antimony model
+            roadrunner model or antimony model or Model object
         data: DataFrame or Timeseries or NamedArray or csv file
             Column names must be the same as the names used in roadrunner output.
             For example, the chemical species "GLU" is denoted by "[GLU]"
@@ -48,6 +52,8 @@ class SBMLFitter():
             start time for the simulation
         end_time: float
             end time for the simulation
+        is_collect: bool
+            collect fitting statistics
         point_density: float
             number of points simulated for each time unit
 
@@ -56,7 +62,10 @@ class SBMLFitter():
         smarte = SBMLFitter(roadrunnerModel, parameters, "observed.csv")
         core.fit()  # Do the fit
         """
-        self.model = anl.Model(model_reference)
+        if isinstance(model_reference, anl.Model):
+            self.model = model_reference
+        else:
+            self.model = anl.Model(model_reference)
         self.data_ts = anl.Timeseries(data)
         self.data_columns = list(self.data_ts.columns)  # non-time columns
         self.parameters = self.subsetToMuteableParameters(parameters)
@@ -65,7 +74,7 @@ class SBMLFitter():
         self.num_point = int(point_density*(self.end_time - start_time)) + 1
         # Set up the fitter
         self.fitter = fpp.Fitterpp(self._simulate, self.parameters, self.data_ts,
-              methods=fitter_methods)
+              methods=fitter_methods, is_collect=is_collect)
 
     def subsetToMuteableParameters(self, parameters):
         """
@@ -135,7 +144,7 @@ class SBMLFitter():
         """
         self.fitter.execute()
 
-    def evaluate(self, true_parameters):
+    def getAccuracies(self, true_parameters):
         """
         Evaluates the accuracy of a fit by comparing fitted values with the
         true value of parameters.
@@ -160,10 +169,46 @@ class SBMLFitter():
         # Calculate estimation errors
         return pd.Series(error_dct, index=value_dct.keys())
 
+    def evaluateFit(self, true_parameters):
+        """
+        Calculates fitter statistics.
+
+        Parameters
+        ----------
+        true_parameters: lmfit.Parameters
+        
+        Returns
+        -------
+        dict
+            avg_err: average error in parameter estimation
+            max_err: largest error in parameter estimation
+            min_err: smallest error in parameter estimation
+            tot_time: total run time
+            avg_time: average time for an evaluation
+            cnt: count of instances ran
+            method: evaluation method
+        """
+        true_parameters = self.subsetToMuteableParameters(true_parameters)
+        ser = self.getAccuracies(true_parameters)
+        abs_ser = ser.apply(lambda v: np.abs(v))
+        indices = list(abs_ser.index)
+        dct = {}
+        dct["avg_err"] = abs_ser.mean()
+        dct["max_err"] = abs_ser.max()
+        dct["min_err"] = abs_ser.min()
+        df_stats = self.fitter.plotPerformance(is_plot=False)
+        indices = list(df_stats.index)
+        dct["method"] = indices[0]
+        dct["tot_time"] = df_stats.loc[indices[0], "tot"]
+        dct["avg_time"] = df_stats.loc[indices[0], "avg"]
+        dct["cnt"] = df_stats.loc[indices[0], "cnt"]
+        return dct
+
     @classmethod
-    def evaluateBioModel(cls, model_num, noise_mag):
+    def evaluateBioModelFit(cls, model_num, noise_mag):
         """
         Compares the fitted and actual values of model parameters for a BioModel.
+        Statistics are reported for the first methond only.
     
         Parameters
         ----------
@@ -172,19 +217,28 @@ class SBMLFitter():
         
         Returns
         -------
-        Series
-            index: parameter name
-            value: fraction error from parameter estimate
+        dict
+            avg_err: average error in parameter estimation
+            max_err: largest error in parameter estimation
+            min_err: smallest error in parameter estimation
+            tot_time: total run time
+            avg_time: average time for an evaluation
+            cnt: count of instances ran
+            method: evaluation method
+            bio_num: number of the biomodel
+            noise_mag: magnitude of the noise used
         """
-        model = anl.Model.getDataPath(model_num)
+        model = anl.Model.getBioModel(model_num)
         observed_ts = model.simulate(noise_mag=noise_mag)
         # Construct true parameters
         parameter_dct = model.get(model.parameter_names)
         true_parameters = fpp.dictToParameters(parameter_dct)
         evaluate_parameters = fpp.dictToParameters(parameter_dct,
-            min_frac=F_LOWER, max_frac=F_HIGHER, value_frac=F_LOWER)
+            min_frac=F_MIN, max_frac=F_MAX, value_frac=F_VALUE)
         # Do the fit and evaluation
-        sfitter = smt.SBMLFitter(path, evaluate_parameters, observed_ts)
+        sfitter = cls(model, evaluate_parameters, observed_ts, is_collect=True)
         true_parameters = sfitter.subsetToMuteableParameters(true_parameters)
-        ser = sfitter.evaluate(true_parameters)
-        return ser
+        dct = sfitter.evaluateFit(true_parameters)
+        dct["bio_num"] = model_num
+        dct["noise_mag"] = noise_mag
+        return dct
