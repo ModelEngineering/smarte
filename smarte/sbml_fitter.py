@@ -23,9 +23,6 @@ import tellurium as te
 import typing
 
 
-PREFIX = "BIOMD0000000%03d.xml"
-
-
 class SBMLFitter():
 
     def __init__(self, model_reference:str,
@@ -162,21 +159,6 @@ class SBMLFitter():
                for n, v in value_dct.items()}
         # Calculate estimation errors
         return pd.Series(error_dct, index=value_dct.keys())
-
-    @staticmethod
-    def getModelFromDataPath(model_num):
-        """
-        Gets a numbered model.
-
-        Parameters
-        ----------
-        model_num: int
-        
-        Returns
-        -------
-        Model
-        """
-        return Model(os.path.join(cn.DATA_DIR, PREFIX % model_num))
 
     @classmethod
     def evaluateBioModel(cls, model_num, noise_mag):

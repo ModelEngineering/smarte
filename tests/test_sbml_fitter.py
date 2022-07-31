@@ -126,13 +126,6 @@ class TestSBMLFitter(unittest.TestCase):
         ser = self.sfitter.evaluate(TRUE_PARAMETERS)
         self.assertTrue(isinstance(ser, pd.Series))
         self.assertLess(np.abs(ser.mean()), 0.001)
-        
-    def testEvaluateBioModel(self):
-        # TESTING
-        ser = smt.SBMLFitter.evaluateBioModel(122, 0)
-        import pdb; pdb.set_trace()
-
-
 
 
 if __name__ == '__main__':

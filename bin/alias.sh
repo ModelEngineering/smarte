@@ -1,0 +1,10 @@
+#!/bin/bash
+alias ds="pushd ~/smarte"
+alias dss="pushd ~/smarte/smarte"
+alias dst="pushd ~/smarte/tests"
+alias df="pushd ~/smarte/fitterpp"
+alias dff="pushd ~/smarte/fitterpp/fitterpp"
+alias dft="pushd ~/smarte/fitterpp/tests"
+alias da="pushd ~/smarte/analyzeSBML"
+alias daa="pushd ~/smarte/analyzeSBML/analyzeSBML"
+alias dat="pushd ~/smarte/analyzeSBML/tests"
