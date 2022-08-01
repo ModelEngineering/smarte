@@ -1,7 +1,7 @@
 name: Continous integration
 
 env:
-  PYTHONPATH: home/runner/work/smarte:home/runner/work/smarte/analyzeSBML:home/runner/work/smarte/fitterpp
+  PYTHONPATH: /home/runner/work/smarte:/home/runner/work/smarte/analyzeSBML:/home/runner/work/smarte/fitterpp
 
 on: [push]
 
