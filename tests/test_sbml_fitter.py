@@ -1,6 +1,5 @@
 import smarte as smt
 import analyzeSBML as anl
-from analyzeSBML.timeseries import Timeseries
 import fitterpp as fpp
 import smarte.constants as cn
 
