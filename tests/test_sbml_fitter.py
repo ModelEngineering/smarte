@@ -1,5 +1,6 @@
 import smarte as smt
 import analyzeSBML as anl
+from analyzeSBML.timeseries import Timeseries
 import fitterpp as fpp
 import smarte.constants as cn
 
@@ -37,9 +38,7 @@ END_TIME = 5
 NUM_POINT = END_TIME*POINT_DENSITY + 1
 rr = te.loada(MODEL)
 arr = rr.simulate(0, END_TIME, NUM_POINT)
-TS = anl.Timeseries(arr)
-if False:
-    anl.plotOneTS(TS)
+TS = Timeseries(arr)
 PARAMETERS = lmfit.Parameters()
 TRUE_PARAMETERS = lmfit.Parameters()
 for name in PARAMETER_NAMES:
@@ -98,9 +97,9 @@ class TestSBMLFitter(unittest.TestCase):
                 self.assertTrue(trues)
         #
         test(TS)
-        ts = anl.Timeseries(TS[["S1", "S3"]])
+        ts = TS[["S1", "S3"]]
         test(ts)
-        ts = anl.Timeseries(TS[["S4"]])
+        ts = TS["S4"]
         test(ts, is_fail=True)
 
     def testSubsetToMuteableParameters(self):
