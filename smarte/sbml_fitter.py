@@ -181,12 +181,15 @@ class SBMLFitter():
         -------
         dict
             avg_err: average error in parameter estimation
-            max_err: largest error in parameter estimation
-            min_err: smallest error in parameter estimation
-            tot_time: total run time
             avg_time: average time for an evaluation
             cnt: count of instances ran
+            max_err: largest error in parameter estimation
             method: evaluation method
+            min_err: smallest error in parameter estimation
+            num_species: number of floating species
+            num_reactions: number of reactions
+            num_parameters: number of parameters
+            tot_time: total run time
         """
         true_parameters = self.subsetToMuteableParameters(true_parameters)
         ser = self.getAccuracies(true_parameters)
@@ -202,6 +205,9 @@ class SBMLFitter():
         dct["tot_time"] = df_stats.loc[indices[0], "tot"]
         dct["avg_time"] = df_stats.loc[indices[0], "avg"]
         dct["cnt"] = df_stats.loc[indices[0], "cnt"]
+        dct["num_species"] = len(self.model.species_names)
+        dct["num_parameters"] = len(self.model.parameter_names)
+        dct["num_reactions"] = len(self.model.reaction_names)
         return dct
 
     @classmethod
@@ -219,12 +225,15 @@ class SBMLFitter():
         -------
         dict
             avg_err: average error in parameter estimation
-            max_err: largest error in parameter estimation
-            min_err: smallest error in parameter estimation
-            tot_time: total run time
             avg_time: average time for an evaluation
             cnt: count of instances ran
+            max_err: largest error in parameter estimation
             method: evaluation method
+            min_err: smallest error in parameter estimation
+            num_species: number of floating species
+            num_reactions: number of reactions
+            num_parameters: number of parameters
+            tot_time: total run time
             bio_num: number of the biomodel
             noise_mag: magnitude of the noise used
         """
