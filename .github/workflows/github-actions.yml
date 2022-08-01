@@ -1,8 +1,11 @@
 name: Continous integration
+
+env:
+  PYTHONPATH: home/runner/work/smarte:home/runner/work/smarte/analyzeSBML:home/runner/work/smarte/fitterpp
+
 on: [push]
+
 jobs:
-  env:
-    PYTHONPATH: home/runner/work/smarte:home/runner/work/smarte/analyzeSBML:home/runner/work/smarte/fitterpp
 
   Run-tests:
     runs-on: ubuntu-latest
