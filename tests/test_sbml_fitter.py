@@ -1,5 +1,5 @@
 import smarte as smt
-from analyzeSBML import Timeseries
+from SBMLModel import Timeseries
 import fitterpp as fpp
 import smarte.constants as cn
 
@@ -12,8 +12,8 @@ import tellurium as te
 import unittest
 
 
-IGNORE_TEST = True
-IS_PLOT = True
+IGNORE_TEST = False
+IS_PLOT = False
 if IS_PLOT:
     matplotlib.use("TkAgg")
 MODEL = """
@@ -160,9 +160,13 @@ class TestSBMLFitter(unittest.TestCase):
         self.assertEqual(len(dct), 0)
         
     def testEvaluateBiomodelFit119(self):
-        # TESTING
+        if IGNORE_TEST:
+            return
         model_num = 119
-        dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+        try:
+            dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+        except RuntimeError:
+            pass
         self.assertGreater(len(dct), 0)
 
 

@@ -11,9 +11,9 @@ Synthetic data are
 import smarte
 import smarte.constants as cn
 import fitterpp as fpp
-import analyzeSBML as anl
+import SBMLModel as mdl
 
-import analyzeSBML as anl
+import SBMLModel as mdl
 import copy
 import fitterpp as fpp
 import lmfit
@@ -64,11 +64,11 @@ class SBMLFitter():
         smarte = SBMLFitter(roadrunnerModel, parameters, "observed.csv")
         core.fit()  # Do the fit
         """
-        if isinstance(model_reference, anl.Model):
+        if isinstance(model_reference, mdl.Model):
             self.model = model_reference
         else:
-            self.model = anl.Model(model_reference)
-        self.data_ts = anl.Timeseries(data)
+            self.model = mdl.Model(model_reference)
+        self.data_ts = mdl.Timeseries(data)
         self.data_columns = list(self.data_ts.columns)  # non-time columns
         self.parameters = self.subsetToMuteableParameters(parameters)
         self.end_time = end_time
@@ -130,7 +130,7 @@ class SBMLFitter():
             columns.append(cn.TIME)
             arr = self.model.roadrunner.simulate(self.start_time,
                   self.end_time, self.num_point, columns)
-            result = anl.Timeseries(arr)
+            result = mdl.Timeseries(arr)
         else:
             result = self.model.roadrunner.simulate(self.start_time,
                   self.end_time, self.num_point, self.data_columns)
@@ -247,7 +247,7 @@ class SBMLFitter():
         if "Model" in str(type(model_num)):
             model = model_num
         else:
-            model = anl.Model.getBiomodel(model_num)
+            model = mdl.Model.getBiomodel(model_num)
         observed_ts = model.simulate(noise_mag=noise_mag)
         # Construct true parameters
         parameter_dct = model.get(model.parameter_names)

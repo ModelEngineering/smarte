@@ -1,3 +1,6 @@
 [submodule "fitterpp"]
 	path = fitterpp
 	url = https://github.com/ModelEngineering/fitterpp.git
+[submodule "SBMLModel"]
+	path = SBMLModel
+	url = https://github.com/ModelEngineering/SBMLModel.git
