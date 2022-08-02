@@ -1,5 +1,5 @@
 import smarte as smt
-import SBMLModel as mdl
+from SBMLModel.timeseries import Timeseries
 import fitterpp as fpp
 import smarte.constants as cn
 
@@ -37,7 +37,7 @@ END_TIME = 5
 NUM_POINT = END_TIME*POINT_DENSITY + 1
 rr = te.loada(MODEL)
 arr = rr.simulate(0, END_TIME, NUM_POINT)
-TS = mdl.Timeseries(arr)
+TS = Timeseries(arr)
 PARAMETERS = lmfit.Parameters()
 TRUE_PARAMETERS = lmfit.Parameters()
 for name in PARAMETER_NAMES:
