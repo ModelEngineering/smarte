@@ -1,6 +1,3 @@
-[submodule "analyzeSBML"]
-	path = analyzeSBML
-	url = https://github.com/ModelEngineering/analyzeSBML.git
 [submodule "fitterpp"]
 	path = fitterpp
 	url = https://github.com/ModelEngineering/fitterpp.git
