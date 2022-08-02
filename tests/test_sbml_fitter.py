@@ -52,8 +52,6 @@ for name in PARAMETER_NAMES:
 class TestSBMLFitter(unittest.TestCase):
 
     def setUp(self):
-        if IGNORE_TEST:
-            return
         self.parameters = copy.deepcopy(PARAMETERS)
         self.sfitter = smt.SBMLFitter(MODEL, self.parameters, TS,
               point_density=POINT_DENSITY)
@@ -168,6 +166,14 @@ class TestSBMLFitter(unittest.TestCase):
             self.assertGreater(len(dct), 0)
         except RuntimeError:
             pass
+        
+    def testEvaluateBiomodelFit531(self):
+        # Model generates no output
+        if IGNORE_TEST:
+            return
+        model_num = 531
+        dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+        self.assertEqual(len(dct), 0)
 
 
 if __name__ == '__main__':

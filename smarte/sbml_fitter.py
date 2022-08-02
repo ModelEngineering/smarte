@@ -74,6 +74,12 @@ class SBMLFitter():
         self.end_time = end_time
         self.start_time = start_time
         self.num_point = int(point_density*(self.end_time - start_time)) + 1
+        # Calculate standard deviations
+        self.full_columns = list(self.data_columns)
+        if cn.TIME not in self.full_columns:
+            self.full_columns.append(cn.TIME)
+        self.std_ser = self.model.calculateStds(self.start_time, self.end_time,
+              self.num_point, self.full_columns)
         # Set up the fitter
         self.fitter = fpp.Fitterpp(self._simulate, self.parameters, self.data_ts,
               methods=fitter_methods, is_collect=is_collect)
@@ -226,7 +232,8 @@ class SBMLFitter():
         Parameters
         ----------
         model_num: int/Model (model number in data directory)
-        noise_mag: float (standard deviation added to true model)
+        noise_mag: float
+            range of values (in units of std) added to the true simulation
         
         Returns
         -------
@@ -248,10 +255,11 @@ class SBMLFitter():
             model = model_num
         else:
             model = mdl.Model.getBiomodel(model_num)
-        observed_ts = model.simulate(noise_mag=noise_mag)
+        observed_ts = model.simulate(noise_mag=noise_mag,
+              std_ser=model.calculateStds())
         # Construct true parameters
         parameter_dct = model.get(model.parameter_names)
-        if len(parameter_dct) > 0:
+        if (len(parameter_dct) > 0) and (len(model.species_names) > 0):
             evaluate_parameters = fpp.dictToParameters(parameter_dct,
                 min_frac=F_MIN, max_frac=F_MAX, value_frac=F_VALUE)
             true_parameters = fpp.dictToParameters(parameter_dct)

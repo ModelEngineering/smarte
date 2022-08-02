@@ -7,7 +7,7 @@ Constructs statistics for models in BioModels.
 import smarte as smt
 from smarte import constants as cn
 from smarte.extended_dict import ExtendedDict
-import analyzeSBML as anl
+import SBMLModel as anl
 
 import os
 import lmfit
@@ -23,15 +23,16 @@ BIOMODEL_NUM = "biomodel_num"
 STATUS = "status"
 UNNAMED = "Unnamed:"
 
-def main(noise_mag=0, out_path=OUT_FILE, **kwargs):
+def main(noise_mag=0, out_path=OUT_FILE, is_restart=True, **kwargs):
     """
     Compares the fitted and actual values of model parameters.
 
     Parameters
     ----------
     noise_mag: float (standard deviation added to true model)
-    out_path: where output is saved
-    kwargs: optional parameters to iterateBiomodels
+    out_path: str (where output is saved)
+    is_restart: bool (ignore prior output if it exists)
+    kwargs: dict (optional parameters to iterateBiomodels)
     
     Returns
     -------
@@ -39,7 +40,7 @@ def main(noise_mag=0, out_path=OUT_FILE, **kwargs):
         index: parameter name
         value: fraction error from parameter estimate
     """
-    if os.path.isfile(out_path):
+    if os.path.isfile(out_path) and (not is_restart):
         df = pd.read_csv(out_path)
         accum_dct = ExtendedDict(df.to_dict())
         accum_dct = {k: v for k,v in accum_dct.items() if not UNNAMED in k}
@@ -90,7 +91,8 @@ def main(noise_mag=0, out_path=OUT_FILE, **kwargs):
         if UNNAMED in column:
             del final_df[column]
     final_df.to_csv(out_path)
+    print("Done!")
     
 
 if __name__ == '__main__':
-    main(num_model=1000, noise_mag=0.1)
+    main(num_model=1000, noise_mag=0.1, is_restart=True)
