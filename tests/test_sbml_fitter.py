@@ -12,8 +12,8 @@ import tellurium as te
 import unittest
 
 
-IGNORE_TEST = False
-IS_PLOT = False
+IGNORE_TEST = True
+IS_PLOT = True
 if IS_PLOT:
     matplotlib.use("TkAgg")
 MODEL = """
@@ -41,8 +41,8 @@ TS = Timeseries(arr)
 PARAMETERS = lmfit.Parameters()
 TRUE_PARAMETERS = lmfit.Parameters()
 for name in PARAMETER_NAMES:
-    PARAMETERS.add(name=name, value=0, min=0, max=10)
-    TRUE_PARAMETERS.add(name=name, value=RR[name], min=0, max=10)
+    PARAMETERS.add(name=name, value=1, min=1, max=10)
+    TRUE_PARAMETERS.add(name=name, value=RR[name], min=1, max=10)
 
         
 
@@ -52,6 +52,8 @@ for name in PARAMETER_NAMES:
 class TestSBMLFitter(unittest.TestCase):
 
     def setUp(self):
+        if IGNORE_TEST:
+            return
         self.parameters = copy.deepcopy(PARAMETERS)
         self.sfitter = smt.SBMLFitter(MODEL, self.parameters, TS,
               point_density=POINT_DENSITY)
@@ -134,12 +136,34 @@ class TestSBMLFitter(unittest.TestCase):
         self.assertTrue(isinstance(dct, dict))
         self.assertTrue("differential_evolution" in dct["method"])
         
-    def testEvaluateBioModelFit(self):
+    def testEvaluateBiomodelFit(self):
         if IGNORE_TEST:
             return
-        dct_0 = smt.SBMLFitter.evaluateBioModelFit(12, 0)
-        dct_1 = smt.SBMLFitter.evaluateBioModelFit(12, 1)
+        model_num = 12
+        dct_0 = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+        dct_1 = smt.SBMLFitter.evaluateBiomodelFit(model_num, 1)
         self.assertGreater(dct_1["max_err"], dct_0["max_err"])
+        self.assertEqual(dct_0["biomodel_num"], model_num)
+        
+    def testEvaluateBiomodelFit17(self):
+        if IGNORE_TEST:
+            return
+        model_num = 17
+        dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+        self.assertEqual(len(dct), 0)
+        
+    def testEvaluateBiomodelFit51(self):
+        if IGNORE_TEST:
+            return
+        model_num = 51
+        dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+        self.assertEqual(len(dct), 0)
+        
+    def testEvaluateBiomodelFit119(self):
+        # TESTING
+        model_num = 119
+        dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+        self.assertGreater(len(dct), 0)
 
 
 if __name__ == '__main__':

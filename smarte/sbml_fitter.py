@@ -3,8 +3,9 @@
 
 @author: joseph-hellerstein
 
-Core logic of SMARTE.
-
+Fits an SBML model using one or more fitting algorithms.
+Provides statistics on fitting collections of BioModels.
+Synthetic data are
 """
 
 import smarte
@@ -36,7 +37,8 @@ class SBMLFitter():
           start_time= cn.START_TIME, end_time=cn.END_TIME,
           point_density=10):
         """
-        Constructs estimates of parameter values.
+        Constructs estimates of parameter values. Only muteable parameters are
+        considered.
 
         Parameters
         ----------
@@ -91,9 +93,12 @@ class SBMLFitter():
         parameter_dct = parameters.valuesdict()
         new_parameters = lmfit.Parameters()
         for name, value in parameter_dct.items():
+            if np.isclose(value, 0.0):
+                continue
             try:
                 self.model.set({name: value})
-                new_parameters.add(parameters.get(name))
+                parameter = parameters.get(name)
+                new_parameters.add(parameter)
             except:
                 continue
         return new_parameters
@@ -189,6 +194,7 @@ class SBMLFitter():
             num_species: number of floating species
             num_reactions: number of reactions
             num_parameters: number of parameters
+            status: str (result of running)
             tot_time: total run time
         """
         true_parameters = self.subsetToMuteableParameters(true_parameters)
@@ -208,17 +214,18 @@ class SBMLFitter():
         dct["num_species"] = len(self.model.species_names)
         dct["num_parameters"] = len(self.model.parameter_names)
         dct["num_reactions"] = len(self.model.reaction_names)
+        dct["status"] = "success!"
         return dct
 
     @classmethod
-    def evaluateBioModelFit(cls, model_num, noise_mag):
+    def evaluateBiomodelFit(cls, model_num, noise_mag):
         """
         Compares the fitted and actual values of model parameters for a BioModel.
         Statistics are reported for the first methond only.
     
         Parameters
         ----------
-        model_num: int (model number in data directory)
+        model_num: int/Model (model number in data directory)
         noise_mag: float (standard deviation added to true model)
         
         Returns
@@ -234,20 +241,29 @@ class SBMLFitter():
             num_reactions: number of reactions
             num_parameters: number of parameters
             tot_time: total run time
-            bio_num: number of the biomodel
+            biomodel_num: number of the biomodel
             noise_mag: magnitude of the noise used
         """
-        model = anl.Model.getBioModel(model_num)
+        if "Model" in str(type(model_num)):
+            model = model_num
+        else:
+            model = anl.Model.getBiomodel(model_num)
         observed_ts = model.simulate(noise_mag=noise_mag)
         # Construct true parameters
         parameter_dct = model.get(model.parameter_names)
-        true_parameters = fpp.dictToParameters(parameter_dct)
-        evaluate_parameters = fpp.dictToParameters(parameter_dct,
-            min_frac=F_MIN, max_frac=F_MAX, value_frac=F_VALUE)
-        # Do the fit and evaluation
-        sfitter = cls(model, evaluate_parameters, observed_ts, is_collect=True)
-        true_parameters = sfitter.subsetToMuteableParameters(true_parameters)
-        dct = sfitter.evaluateFit(true_parameters)
-        dct["bio_num"] = model_num
-        dct["noise_mag"] = noise_mag
+        if len(parameter_dct) > 0:
+            evaluate_parameters = fpp.dictToParameters(parameter_dct,
+                min_frac=F_MIN, max_frac=F_MAX, value_frac=F_VALUE)
+            true_parameters = fpp.dictToParameters(parameter_dct)
+            # Do the fit and evaluation
+            sfitter = cls(model, evaluate_parameters, observed_ts, is_collect=True)
+            true_parameters = sfitter.subsetToMuteableParameters(true_parameters)
+            if len(true_parameters) > 0:
+                dct = sfitter.evaluateFit(true_parameters)
+                dct["biomodel_num"] = model.biomodel_num
+                dct["noise_mag"] = noise_mag
+            else:
+                dct = {}
+        else:
+            dct = {}
         return dct
