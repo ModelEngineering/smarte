@@ -2,7 +2,7 @@ name: Continous integration
 
 # Sets environment variables for all jobs
 env:
-  PYTHONPATH: :/home/runner/work/smarte/smarte:/home/runner/work/smarte/smarte/analyzeSBML:/home/runner/work/smarte/smarte/fitterpp
+  PYTHONPATH: :/home/runner/work/smarte/smarte:/home/runner/work/smarte/smarte/SBMLModel:/home/runner/work/smarte/smarte/fitterpp
 
 on: [push]
 
