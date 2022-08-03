@@ -47,45 +47,33 @@ def main(noise_mag=0, out_path=OUT_FILE, is_restart=True, **kwargs):
     else:
         accum_dct = ExtendedDict()
         df = pd.DataFrame({BIOMODEL_NUM: [-1]})
-    missing_models = {}
+    none_dct = None
     for model_num, model in anl.Model.iterateBiomodels(**kwargs):
         if not model_num in df[BIOMODEL_NUM].values:
+            dct = {}
             if model is not None:
                 try:
                     dct = smt.SBMLFitter.evaluateBiomodelFit(model, noise_mag)
-                    if len(dct) > 0:
-                        accum_dct.append(dct)
-                        print("\n***Model %d success!" % model_num)
-                    else:
-                        msg = "\n***Model %d: All parameters are 0 or are not muteable.\n"
-                        print(msg % model_num)
-                        missing_models[model_num] = "parameters are 0 or not muteable"
                 except (ValueError, RuntimeError) as exp:
-                    print("\n***Model %d: %s\n" % (model.biomodel_num, exp))
-                    missing_models[model_num] = "exception"
+                    dct[STATUS] = str(exp)
             else:
-                print("\n***Model %d: Model does not run!\n" % model_num)
-                missing_models[model_num] = "does not run"
+                dct[STATUS] = "Cannot create model"
+            # Accumulate results
+            if len(dct) > 1:
+                accum_dct.append(dct)
+                if none_dct is None:
+                   none_dct = {k: None for k in dct.keys()}
+            else:
+                new_dct = dict(none_dct)
+                new_dct[BIOMODEL_NUM] = model_num
+                new_dct[STATUS] = dct[STATUS]
+                accum_dct.append(new_dct)
             df = pd.DataFrame(accum_dct)
+            print("\n***Model %d: %s" % (model_num, dct[STATUS]))
             # Create entry for missing models
             df.to_csv(out_path)
     # Handle the missing models
-    indices = list(df.index)
-    ser = df.loc[indices[0], :]
-    for idx in ser.index:
-        ser.loc[idx] = None
-    sers = []
-    for key, value in missing_models.items():
-        new_ser = ser.copy()
-        new_ser.loc[BIOMODEL_NUM] = key
-        new_ser.loc[STATUS] = value
-        sers.append(new_ser)
-    if len(sers) > 0:
-        new_df = pd.concat(sers, axis=1).transpose()
-        final_df = pd.concat([new_df, df], axis=0)
-    else:
-        final_df = df
-    final_df = final_df.sort_values(BIOMODEL_NUM)
+    final_df = df.sort_values(BIOMODEL_NUM)
     final_df.index = range(1, len(final_df)+1)
     for column in final_df.columns:
         if UNNAMED in column:
@@ -95,4 +83,4 @@ def main(noise_mag=0, out_path=OUT_FILE, is_restart=True, **kwargs):
     
 
 if __name__ == '__main__':
-    main(num_model=1000, noise_mag=0.1, is_restart=True)
+    main(num_model=1000, noise_mag=0.1, is_restart=True, start_num=1)

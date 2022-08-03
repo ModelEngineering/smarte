@@ -148,14 +148,14 @@ class TestSBMLFitter(unittest.TestCase):
             return
         model_num = 17
         dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
-        self.assertEqual(len(dct), 0)
+        self.assertEqual(len(dct), 1)
         
     def testEvaluateBiomodelFit51(self):
         if IGNORE_TEST:
             return
         model_num = 51
         dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
-        self.assertEqual(len(dct), 0)
+        self.assertEqual(len(dct), 1)
         
     def testEvaluateBiomodelFit119(self):
         if IGNORE_TEST:
@@ -173,7 +173,40 @@ class TestSBMLFitter(unittest.TestCase):
             return
         model_num = 531
         dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
-        self.assertEqual(len(dct), 0)
+        self.assertEqual(len(dct), 1)
+        
+    def testEvaluateBiomodelFit633(self):
+        # Model generates no output
+        if IGNORE_TEST:
+            return
+        model_num = 633
+        dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+        self.assertEqual(len(dct), 1)
+        
+    def testEvaluateBiomodelFit250(self):
+        # Model generates no output
+        if IGNORE_TEST:
+            return
+        model_num = 250
+        dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+        
+    def testEvaluateBiomodelFit631(self):
+        # Model generates no output
+        if IGNORE_TEST:
+            return
+        model_num = 631
+        dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+        
+    def testFindBadModel(self):
+        # Finds the bad model
+        return
+        start_model_num = 632
+        for model_num in range(start_model_num, 1000):
+            try:
+                dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+            except Exception as exp:
+                import pdb; pdb.set_trace()
+                pass
 
 
 if __name__ == '__main__':

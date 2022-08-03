@@ -27,6 +27,9 @@ F_MIN = 0.5
 F_MAX = 2
 F_VALUE = F_MIN
 
+# Keys in return from evaluateModel
+STATUS = "status"
+
 
 class SBMLFitter():
 
@@ -132,10 +135,8 @@ class SBMLFitter():
         # Run the simulation
         self.model.roadrunner.reset()
         if is_dataframe:
-            columns = list(self.data_columns)
-            columns.append(cn.TIME)
-            arr = self.model.roadrunner.simulate(self.start_time,
-                  self.end_time, self.num_point, columns)
+            arr = self.model.simulate(self.start_time,
+                  self.end_time, self.num_point, self.full_columns)
             result = mdl.Timeseries(arr)
         else:
             result = self.model.roadrunner.simulate(self.start_time,
@@ -220,7 +221,7 @@ class SBMLFitter():
         dct["num_species"] = len(self.model.species_names)
         dct["num_parameters"] = len(self.model.parameter_names)
         dct["num_reactions"] = len(self.model.reaction_names)
-        dct["status"] = "success!"
+        dct["status"] = "Success!"
         return dct
 
     @classmethod
@@ -228,6 +229,7 @@ class SBMLFitter():
         """
         Compares the fitted and actual values of model parameters for a BioModel.
         Statistics are reported for the first methond only.
+        Returns a status if fail.
     
         Parameters
         ----------
@@ -250,13 +252,21 @@ class SBMLFitter():
             tot_time: total run time
             biomodel_num: number of the biomodel
             noise_mag: magnitude of the noise used
+            status: str (reason for failure)
         """
+        dct = {}
         if "Model" in str(type(model_num)):
             model = model_num
         else:
-            model = mdl.Model.getBiomodel(model_num)
+            try:
+                model = mdl.Model.getBiomodel(model_num)
+            except Exception:
+                dct[STATUS] = "Could not construct model."
+                return dct
         observed_ts = model.simulate(noise_mag=noise_mag,
               std_ser=model.calculateStds())
+        if observed_ts is None:
+            dct[STATUS] = "Could not generate observed data."
         # Construct true parameters
         parameter_dct = model.get(model.parameter_names)
         if (len(parameter_dct) > 0) and (len(model.species_names) > 0):
@@ -264,14 +274,17 @@ class SBMLFitter():
                 min_frac=F_MIN, max_frac=F_MAX, value_frac=F_VALUE)
             true_parameters = fpp.dictToParameters(parameter_dct)
             # Do the fit and evaluation
-            sfitter = cls(model, evaluate_parameters, observed_ts, is_collect=True)
-            true_parameters = sfitter.subsetToMuteableParameters(true_parameters)
-            if len(true_parameters) > 0:
-                dct = sfitter.evaluateFit(true_parameters)
-                dct["biomodel_num"] = model.biomodel_num
-                dct["noise_mag"] = noise_mag
-            else:
-                dct = {}
+            try:
+                sfitter = cls(model, evaluate_parameters, observed_ts, is_collect=True)
+                true_parameters = sfitter.subsetToMuteableParameters(true_parameters)
+                if len(true_parameters) > 0:
+                    dct = sfitter.evaluateFit(true_parameters)
+                    dct["biomodel_num"] = model.biomodel_num
+                    dct["noise_mag"] = noise_mag
+                else:
+                    dct[STATUS] = "No muteable parameters."
+            except (RuntimeError, IndexError):
+                dct[STATUS] = "Could not construct fitter."
         else:
-            dct = {}
+            dct[STATUS] = "No parameters or no floating species."
         return dct
