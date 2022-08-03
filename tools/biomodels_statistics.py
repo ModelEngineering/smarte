@@ -7,7 +7,7 @@ Constructs statistics for models in BioModels.
 import smarte as smt
 from smarte import constants as cn
 from smarte.extended_dict import ExtendedDict
-import SBMLModel as anl
+import SBMLModel as mdl
 
 import os
 import lmfit
@@ -48,7 +48,7 @@ def main(noise_mag=0, out_path=OUT_FILE, is_restart=True, **kwargs):
         accum_dct = ExtendedDict()
         df = pd.DataFrame({BIOMODEL_NUM: [-1]})
     none_dct = None
-    for model_num, model in anl.Model.iterateBiomodels(**kwargs):
+    for model_num, model in mdl.Model.iterateBiomodels(is_allerror=True, **kwargs):
         if not model_num in df[BIOMODEL_NUM].values:
             dct = {}
             if model is not None:
@@ -57,7 +57,7 @@ def main(noise_mag=0, out_path=OUT_FILE, is_restart=True, **kwargs):
                 except (ValueError, RuntimeError) as exp:
                     dct[STATUS] = str(exp)
             else:
-                dct[STATUS] = "Cannot create model"
+                dct[STATUS] = "Cannot create model."
             # Accumulate results
             if len(dct) > 1:
                 accum_dct.append(dct)

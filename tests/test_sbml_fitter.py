@@ -197,11 +197,23 @@ class TestSBMLFitter(unittest.TestCase):
         model_num = 631
         dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
         
+    def testEvaluateBiomodelFit437(self):
+        # Model generates no output
+        if IGNORE_TEST:
+            return
+        model_num = 437
+        try:
+            dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+            self.assertTrue(True)  # SHouldn't get here
+        except ValueError:
+            pass
+        
     def testFindBadModel(self):
         # Finds the bad model
         return
-        start_model_num = 632
-        for model_num in range(start_model_num, 1000):
+        start_model_num = 631
+        for model_num, model in mdl.Model.iterateBiomodels(
+              start_num=start_model_num, num_model=100, is_allerror=True):
             try:
                 dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
             except Exception as exp:
