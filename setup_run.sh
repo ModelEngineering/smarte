@@ -1,3 +1,2 @@
 #!/bin/bash
-PYTHONPATH=${PYTHONPATH}:`pwd`/SBMLModel:`pwd`:`pwd`/fitterpp
-export PYTHONPATH
+export PYTHONPATH=`pwd`:`pwd`/fitterpp/:`pwd`/SBMLModel/:$PYTHONPATH
