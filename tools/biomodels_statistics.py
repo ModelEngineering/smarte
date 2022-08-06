@@ -22,8 +22,20 @@ OUT_FILE = os.path.join(cn.PROJECT_DIR, "biomodels_statistics.csv")
 BIOMODEL_NUM = "biomodel_num"
 STATUS = "status"
 UNNAMED = "Unnamed:"
+NONE_DCT = {k: None for k in cn.SD_ALL}
 
-def main(noise_mag=0, out_path=OUT_FILE, is_restart=True, **kwargs):
+
+def write_msg(model_num, msg, is_onlyreportsuccess):
+    if "Success" in msg:
+        print("\n***Model %d: %s" % (model_num, msg))
+    elif (not is_onlyreportsuccess):
+        print("\n***Model %d: %s" % (model_num, msg))
+    else:
+        pass
+    return
+
+def main(noise_mag=0, out_path=OUT_FILE, is_restart=True,
+      is_onlyreportsuccess=True, **kwargs):
     """
     Compares the fitted and actual values of model parameters.
 
@@ -32,6 +44,7 @@ def main(noise_mag=0, out_path=OUT_FILE, is_restart=True, **kwargs):
     noise_mag: float (standard deviation added to true model)
     out_path: str (where output is saved)
     is_restart: bool (ignore prior output if it exists)
+    is_onlyreportsuccess: bool (only report successfully processed files)
     kwargs: dict (optional parameters to iterateBiomodels)
     
     Returns
@@ -47,7 +60,6 @@ def main(noise_mag=0, out_path=OUT_FILE, is_restart=True, **kwargs):
     else:
         accum_dct = ExtendedDict()
         df = pd.DataFrame({BIOMODEL_NUM: [-1]})
-    none_dct = None
     for model_num, model in mdl.Model.iterateBiomodels(is_allerror=True, **kwargs):
         if not model_num in df[BIOMODEL_NUM].values:
             dct = {}
@@ -61,15 +73,13 @@ def main(noise_mag=0, out_path=OUT_FILE, is_restart=True, **kwargs):
             # Accumulate results
             if len(dct) > 1:
                 accum_dct.append(dct)
-                if none_dct is None:
-                   none_dct = {k: None for k in dct.keys()}
             else:
-                new_dct = dict(none_dct)
+                new_dct = dict(NONE_DCT)
                 new_dct[BIOMODEL_NUM] = model_num
                 new_dct[STATUS] = dct[STATUS]
                 accum_dct.append(new_dct)
             df = pd.DataFrame(accum_dct)
-            print("\n***Model %d: %s" % (model_num, dct[STATUS]))
+            write_msg(model_num, dct[STATUS], is_onlyreportsuccess)
             # Create entry for missing models
             df.to_csv(out_path)
     # Handle the missing models
@@ -83,4 +93,4 @@ def main(noise_mag=0, out_path=OUT_FILE, is_restart=True, **kwargs):
     
 
 if __name__ == '__main__':
-    main(num_model=1000, noise_mag=0.1, is_restart=True, start_num=1)
+    main(num_model=1200, noise_mag=0.1, is_restart=True, start_num=1)

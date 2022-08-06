@@ -52,6 +52,11 @@ for name in PARAMETER_NAMES:
 class TestSBMLFitter(unittest.TestCase):
 
     def setUp(self):
+        if IGNORE_TEST:
+            return
+        self.init()
+
+    def init(self):
         self.parameters = copy.deepcopy(PARAMETERS)
         self.sfitter = smt.SBMLFitter(MODEL, self.parameters, TS,
               point_density=POINT_DENSITY)
@@ -59,6 +64,16 @@ class TestSBMLFitter(unittest.TestCase):
     def testConstructor(self):
         if IGNORE_TEST:
             return
+        self.assertTrue("Fitterpp" in str(type(self.sfitter.fitter)))
+
+    def testConstructor2(self):
+        if IGNORE_TEST:
+            return
+        self.init()
+        sfitter = smt.SBMLFitter(MODEL, self.parameters, TS,
+              method_names=["leastsq", "differential_evolution"],
+              max_fev=10000,
+              point_density=POINT_DENSITY)
         self.assertTrue("Fitterpp" in str(type(self.sfitter.fitter)))
 
     def testSimulate(self):
@@ -143,6 +158,15 @@ class TestSBMLFitter(unittest.TestCase):
         self.assertGreater(3*dct_1["max_err"], dct_0["max_err"])
         self.assertEqual(dct_0["biomodel_num"], model_num)
         
+    def testEvaluateBiomodelFitOpts(self):
+        if IGNORE_TEST:
+            return
+        model_num = 12
+        dct_0 = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+        dct_1 = smt.SBMLFitter.evaluateBiomodelFit(model_num, 1)
+        self.assertGreater(3*dct_1["max_err"], dct_0["max_err"])
+        self.assertEqual(dct_0["biomodel_num"], model_num)
+        
     def testEvaluateBiomodelFit17(self):
         if IGNORE_TEST:
             return
@@ -211,9 +235,10 @@ class TestSBMLFitter(unittest.TestCase):
     def testFindBadModel(self):
         # Finds the bad model
         return
-        start_model_num = 631
+        start_model_num = 340
         for model_num, model in mdl.Model.iterateBiomodels(
               start_num=start_model_num, num_model=100, is_allerror=True):
+            print(model_num)
             try:
                 dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
             except Exception as exp:

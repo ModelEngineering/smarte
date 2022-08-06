@@ -27,18 +27,14 @@ F_MIN = 0.5
 F_MAX = 2
 F_VALUE = F_MIN
 
-# Keys in return from evaluateModel
-STATUS = "status"
-
 
 class SBMLFitter():
 
     def __init__(self, model_reference:str,
           parameters:lmfit.Parameters,
           data,
-          fitter_methods=None, is_collect=False,
           start_time= cn.START_TIME, end_time=cn.END_TIME,
-          point_density=10):
+          point_density=10, **fitterpp_opt):
         """
         Constructs estimates of parameter values. Only muteable parameters are
         considered.
@@ -57,10 +53,10 @@ class SBMLFitter():
             start time for the simulation
         end_time: float
             end time for the simulation
-        is_collect: bool
-            collect fitting statistics
         point_density: float
             number of points simulated for each time unit
+        fitterpp_opt: dict
+            options for Fitterpp constructor
 
         Usage
         -----
@@ -85,7 +81,7 @@ class SBMLFitter():
               self.num_point, self.full_columns)
         # Set up the fitter
         self.fitter = fpp.Fitterpp(self._simulate, self.parameters, self.data_ts,
-              methods=fitter_methods, is_collect=is_collect)
+              **fitterpp_opt)
 
     def subsetToMuteableParameters(self, parameters):
         """
@@ -209,33 +205,37 @@ class SBMLFitter():
         abs_ser = ser.apply(lambda v: np.abs(v))
         indices = list(abs_ser.index)
         dct = {}
-        dct["avg_err"] = abs_ser.mean()
-        dct["max_err"] = abs_ser.max()
-        dct["min_err"] = abs_ser.min()
+        dct[cn.SD_AVG_ERR] = abs_ser.mean()
+        dct[cn.SD_MAX_ERR] = abs_ser.max()
+        dct[cn.SD_MIN_ERR] = abs_ser.min()
         df_stats = self.fitter.plotPerformance(is_plot=False)
         indices = list(df_stats.index)
-        dct["method"] = indices[0]
-        dct["tot_time"] = df_stats.loc[indices[0], "tot"]
-        dct["avg_time"] = df_stats.loc[indices[0], "avg"]
-        dct["cnt"] = df_stats.loc[indices[0], "cnt"]
-        dct["num_species"] = len(self.model.species_names)
-        dct["num_parameters"] = len(self.model.parameter_names)
-        dct["num_reactions"] = len(self.model.reaction_names)
-        dct["status"] = "Success!"
+        dct[cn.SD_METHOD] = indices[0]
+        dct[cn.SD_TOT_TIME] = df_stats.loc[indices[0], "tot"]
+        dct[cn.SD_AVG_TIME] = df_stats.loc[indices[0], "avg"]
+        dct[cn.SD_CNT] = df_stats.loc[indices[0], "cnt"]
+        dct[cn.SD_NUM_SPECIES] = len(self.model.species_names)
+        dct[cn.SD_NUM_PARAMETERS] = len(self.model.parameter_names)
+        dct[cn.SD_NUM_REACTIONS] = len(self.model.reaction_names)
+        dct[cn.SD_STATUS] = "Success!"
         return dct
 
     @classmethod
-    def evaluateBiomodelFit(cls, model_num, noise_mag):
+    def evaluateBiomodelFit(cls, model_num, noise_mag, **fitterpp_opt):
         """
         Compares the fitted and actual values of model parameters for a BioModel.
         Statistics are reported for the first methond only.
         Returns a status if fail.
+
+        Note that the is_collect option of Fitterpp is forced to True so that
+        certain statistics can be generated.
     
         Parameters
         ----------
         model_num: int/Model (model number in data directory)
         noise_mag: float
             range of values (in units of std) added to the true simulation
+        fitterpp_opt: dict (options for Fitterpp constructor)
         
         Returns
         -------
@@ -255,36 +255,45 @@ class SBMLFitter():
             status: str (reason for failure)
         """
         dct = {}
+        success = True
         if "Model" in str(type(model_num)):
             model = model_num
         else:
             try:
                 model = mdl.Model.getBiomodel(model_num)
+                if model is None:
+                    success = False
             except Exception:
-                dct[STATUS] = "Could not construct model."
-                return dct
+                success = False
+        if not success:
+            dct[cn.SD_STATUS] = "Could not construct model."
+            return dct
+        # Prepare data for evaluation
         observed_ts = model.simulate(noise_mag=noise_mag,
               std_ser=model.calculateStds())
         if observed_ts is None:
-            dct[STATUS] = "Could not generate observed data."
+            dct[cn.SD_STATUS] = "Could not generate observed data."
         # Construct true parameters
+        fitterpp_opt = dict(fitterpp_opt)
+        fitterpp_opt["is_collect"] = True
         parameter_dct = model.get(model.parameter_names)
         if (len(parameter_dct) > 0) and (len(model.species_names) > 0):
             evaluate_parameters = fpp.dictToParameters(parameter_dct,
-                min_frac=F_MIN, max_frac=F_MAX, value_frac=F_VALUE)
+                min_frac=F_MIN, max_frac=F_MAX, value_frac=F_VALUE,
+                is_random_initial=True)
             true_parameters = fpp.dictToParameters(parameter_dct)
             # Do the fit and evaluation
             try:
-                sfitter = cls(model, evaluate_parameters, observed_ts, is_collect=True)
+                sfitter = cls(model, evaluate_parameters, observed_ts, **fitterpp_opt)
                 true_parameters = sfitter.subsetToMuteableParameters(true_parameters)
                 if len(true_parameters) > 0:
                     dct = sfitter.evaluateFit(true_parameters)
-                    dct["biomodel_num"] = model.biomodel_num
-                    dct["noise_mag"] = noise_mag
+                    dct[cn.SD_BIOMODEL_NUM] = model.biomodel_num
+                    dct[cn.SD_NOISE_MAG] = noise_mag
                 else:
-                    dct[STATUS] = "No muteable parameters."
+                    dct[cn.SD_STATUS] = "No muteable parameters."
             except (RuntimeError, IndexError):
-                dct[STATUS] = "Could not construct fitter."
+                dct[cn.SD_STATUS] = "Could not construct fitter."
         else:
-            dct[STATUS] = "No parameters or no floating species."
+            dct[cn.SD_STATUS] = "No parameters or no floating species."
         return dct
