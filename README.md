@@ -11,3 +11,5 @@
 * To get plots, ``sudo apt install python3.9-tk``
 * `git clone --recurse-submodules https://github.com/ModelEngineering/smarte.git
 * To get tkinter, ``sudo apt-get install python3.6-tk``.
+
+# Versions
