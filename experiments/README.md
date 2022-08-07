@@ -1,5 +1,7 @@
 # EXPERIMENTS
 
+This directory contains experimental data from running experiments.
+
 Directories encode the following:
 
 * Noise: Upper bound of the noise added (uniform distribution)

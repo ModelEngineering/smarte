@@ -167,6 +167,14 @@ class TestSBMLFitter(unittest.TestCase):
         self.assertGreater(3*dct_1["max_err"], dct_0["max_err"])
         self.assertEqual(dct_0["biomodel_num"], model_num)
         
+    def testEvaluateBiomodelFitLargeError(self):
+        if IGNORE_TEST:
+            return
+        max_fev = 500
+        model_num = 7
+        dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0, max_fev=max_fev)
+        self.assertLess(np.abs(dct[cn.SD_CNT] - max_fev), 2)
+        
     def testEvaluateBiomodelFit17(self):
         if IGNORE_TEST:
             return

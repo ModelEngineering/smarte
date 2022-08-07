@@ -5,7 +5,7 @@ END_TIME = 5  # Default simulation end time
 START_TIME = 0  # Default simulation start time
 TIME = "time"
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(PROJECT_DIR, "data")
+EXPERIMENT_DIR = os.path.join(PROJECT_DIR, "experiments")
 # Keys in statistics dictionary
 SD_AVG_ERR = "avg_err"  #average error in parameter estimation
 SD_AVG_TIME = "avg_time"  #average time for an evaluation
