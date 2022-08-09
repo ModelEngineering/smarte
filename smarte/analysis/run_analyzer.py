@@ -39,6 +39,7 @@ class ReplicationAnalyzer(object):
         ----------
         path: str (path to replication CSV)
         """
+        self.path = path
         df = pd.read_csv(path)
         keeps = [i == "Success!" for i in df[cn.SD_STATUS]]
         for column in df.columns:
@@ -46,6 +47,10 @@ class ReplicationAnalyzer(object):
                 del df[column]
         del df[cn.SD_STATUS]
         self.df = df[keeps]
+        self.df = self.df.set_index(cn.SD_BIOMODEL_NUM)
+
+    def serialize(self, path):
+        self.df.to_csv(path)
 
 
 class RunAnalyzer(object):
@@ -59,4 +64,4 @@ class RunAnalyzer(object):
         ----------
         path: str (path to directory with replication CSVs)
         """
-        pass
+        #self.repliications =

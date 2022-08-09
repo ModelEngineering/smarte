@@ -15,12 +15,16 @@ SD_MAX_ERR = "max_err"  #largest error in parameter estimation
 SD_METHOD = "method"  #evaluation method
 SD_MIN_ERR = "min_err"  #smallest error in parameter estimation
 SD_NUM_SPECIES = "num_species"  #number of floating species
-SD_NUM_REACTIONS = "num_reactions"  #number of reactions
-SD_NUM_PARAMETERS = "num_parameters"  #number of parameters
+SD_NUM_REACTION = "num_reaction"  #number of reactions
+SD_NUM_PARAMETER = "num_parameter"  #number of parameters
 SD_TOT_TIME = "tot_time"  #total run time
 SD_NOISE_MAG = "noise_mag"  #magnitude of the noise used
 SD_STATUS = "status"  #str (reason for failure)
-SD_ALL =  [SD_AVG_ERR, SD_AVG_TIME, SD_BIOMODEL_NUM, SD_CNT, SD_MAX_ERR, SD_METHOD,
-      SD_MIN_ERR, SD_NUM_SPECIES, SD_NUM_REACTIONS, SD_NUM_PARAMETERS, SD_TOT_TIME,
-      SD_NOISE_MAG, SD_STATUS,
+# A califier is something the descries the model or the experiment
+# These values are not aggregated
+SD_QUALIFIER =  [SD_BIOMODEL_NUM, SD_METHOD,
+      SD_NUM_SPECIES, SD_NUM_REACTION, SD_NUM_PARAMETER, SD_STATUS, SD_NOISE_MAG
       ]
+SD_METRIC =  [SD_AVG_ERR, SD_AVG_TIME, SD_CNT, SD_MAX_ERR, SD_MIN_ERR, SD_TOT_TIME, ]
+SD_ALL = list(SD_QUALIFIER)
+SD_ALL.append(SD_METRIC)

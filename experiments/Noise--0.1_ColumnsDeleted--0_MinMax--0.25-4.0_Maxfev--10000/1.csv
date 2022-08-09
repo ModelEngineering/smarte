@@ -1,4 +1,4 @@
-,avg_err,max_err,min_err,method,tot_time,avg_time,cnt,num_species,num_parameters,num_reactions,status,biomodel_num,noise_mag
+,avg_err,max_err,min_err,method,tot_time,avg_time,cnt,num_species,num_parameter,num_reaction,status,biomodel_num,noise_mag
 1,0.528835220540684,0.998516685618436,0.04337751096826348,differential_evolution,0.3362112045288086,0.0003093019360890603,1087.0,12.0,35.0,17.0,Success!,1,0.1
 2,,,,,,,,,,,Cannot create model.,2,
 3,0.26322656285829976,0.49999775084476994,0.13136477586840853,differential_evolution,0.12599873542785645,0.0002769202976436405,455.0,3.0,5.0,7.0,Success!,3,0.1
