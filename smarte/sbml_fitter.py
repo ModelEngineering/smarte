@@ -215,8 +215,8 @@ class SBMLFitter():
         dct[cn.SD_AVG_TIME] = df_stats.loc[indices[0], "avg"]
         dct[cn.SD_CNT] = df_stats.loc[indices[0], "cnt"]
         dct[cn.SD_NUM_SPECIES] = len(self.model.species_names)
-        dct[cn.SD_NUM_PARAMETERS] = len(self.model.parameter_names)
-        dct[cn.SD_NUM_REACTIONS] = len(self.model.reaction_names)
+        dct[cn.SD_NUM_PARAMETER] = len(self.model.parameter_names)
+        dct[cn.SD_NUM_REACTION] = len(self.model.reaction_names)
         dct[cn.SD_STATUS] = "Success!"
         return dct
 
