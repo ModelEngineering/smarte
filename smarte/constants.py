@@ -7,13 +7,13 @@ TIME = "time"
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXPERIMENT_DIR = os.path.join(PROJECT_DIR, "experiments")
 # Keys in statistics dictionary
-SD_AVG_ERR = "avg_err"  #average absolute value of log2 estimated/actual
 SD_AVG_TIME = "avg_time"  #average time for an evaluation
 SD_BIOMODEL_NUM = "biomodel_num"  #number of the biomodel
 SD_CNT = "cnt"  #count of instances ran
-SD_MAX_ERR = "max_err"  #largest error in parameter estimation
+SD_MAX_ERR = "max_err"  # parameter error with the largest absolute value
+SD_MEDIAN_ERR = "median_err"  # Median of the error values for a parameter
 SD_METHOD = "method"  #evaluation method
-SD_MIN_ERR = "min_err"  #smallest error in parameter estimation
+SD_MIN_ERR = "min_err"  # parameter error with the smallest absolute value
 SD_NUM_SPECIES = "num_species"  #number of floating species
 SD_NUM_REACTION = "num_reaction"  #number of reactions
 SD_NUM_PARAMETER = "num_parameter"  #number of parameters
@@ -25,6 +25,6 @@ SD_STATUS = "status"  #str (reason for failure)
 SD_QUALIFIER =  [SD_BIOMODEL_NUM, SD_METHOD,
       SD_NUM_SPECIES, SD_NUM_REACTION, SD_NUM_PARAMETER, SD_STATUS, SD_NOISE_MAG
       ]
-SD_METRIC =  [SD_AVG_ERR, SD_AVG_TIME, SD_CNT, SD_MAX_ERR, SD_MIN_ERR, SD_TOT_TIME, ]
+SD_METRIC =  [SD_MEDIAN_ERR, SD_AVG_TIME, SD_CNT, SD_MAX_ERR, SD_MIN_ERR, SD_TOT_TIME, ]
 SD_ALL = list(SD_QUALIFIER)
 SD_ALL.extend(SD_METRIC)

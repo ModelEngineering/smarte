@@ -106,7 +106,7 @@ class ReplicationAnalyzer(object):
             # Number of species
             ax.scatter(self.df[xaxis], self.df[cn.SD_MIN_ERR], color='g')
         if is_avg:
-            ax.scatter(self.df[xaxis], self.df[cn.SD_AVG_ERR], color='b')
+            ax.scatter(self.df[xaxis], self.df[cn.SD_MEDIAN_ERR], color='b')
         if is_max:
             ax.scatter(self.df[xaxis], self.df[cn.SD_MAX_ERR], color='purple')
         ax.set_ylabel('estimation error (log2 estimated/actual)')
@@ -175,9 +175,9 @@ class ReplicationAnalyzer(object):
         ax4a.hist(self.df[cn.SD_MIN_ERR], bins=100, density=True,
               histtype='step', cumulative=1,)
         ax4a.set_xlabel("min error")
-        ax4b.hist(self.df[cn.SD_AVG_ERR], bins=100, density=True,
+        ax4b.hist(self.df[cn.SD_MEDIAN_ERR], bins=100, density=True,
               histtype='step', cumulative=1,)
-        ax4b.set_xlabel("avg error")
+        ax4b.set_xlabel("median error")
         ax4c.hist(self.df[cn.SD_MAX_ERR], bins=100, density=True,
               histtype='step', cumulative=1,)
         ax4c.set_xlabel("max error")

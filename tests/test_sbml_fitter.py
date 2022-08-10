@@ -155,7 +155,7 @@ class TestSBMLFitter(unittest.TestCase):
         model_num = 12
         dct_0 = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
         dct_1 = smt.SBMLFitter.evaluateBiomodelFit(model_num, 1)
-        self.assertGreater(3*dct_1["max_err"], dct_0["max_err"])
+        self.assertGreater(np.abs(dct_1[cn.SD_MAX_ERR]), np.abs(dct_0[cn.SD_MAX_ERR]))
         self.assertEqual(dct_0["biomodel_num"], model_num)
         
     def testEvaluateBiomodelFitOpts(self):
@@ -164,7 +164,7 @@ class TestSBMLFitter(unittest.TestCase):
         model_num = 12
         dct_0 = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
         dct_1 = smt.SBMLFitter.evaluateBiomodelFit(model_num, 1)
-        self.assertGreater(3*dct_1["max_err"], dct_0["max_err"])
+        self.assertGreater(np.abs(dct_1[cn.SD_MAX_ERR]), np.abs(dct_0[cn.SD_MAX_ERR]))
         self.assertEqual(dct_0["biomodel_num"], model_num)
         
     def testEvaluateBiomodelFitLargeError(self):

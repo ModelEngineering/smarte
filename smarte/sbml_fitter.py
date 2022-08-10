@@ -23,9 +23,8 @@ import pandas as pd
 import tellurium as te
 import typing
 
-F_MIN = 0.5
-F_MAX = 2
-F_VALUE = F_MIN
+MIN_FRAC = 0.5
+MAX_FRAC = 2
 
 
 class SBMLFitter():
@@ -206,7 +205,7 @@ class SBMLFitter():
         indices = list(abs_ser.index)
         dct = {}
         sorted_values = sorted(ser.values, key=lambda v: np.abs(v))
-        dct[cn.SD_AVG_ERR] = abs_ser.mean()
+        dct[cn.SD_MEDIAN_ERR] = ser.median()
         dct[cn.SD_MAX_ERR] = sorted_values[-1]
         dct[cn.SD_MIN_ERR] = sorted_values[0]
         df_stats = self.fitter.plotPerformance(is_plot=False)
@@ -280,7 +279,7 @@ class SBMLFitter():
         parameter_dct = model.get(model.parameter_names)
         if (len(parameter_dct) > 0) and (len(model.species_names) > 0):
             evaluate_parameters = fpp.dictToParameters(parameter_dct,
-                min_frac=F_MIN, max_frac=F_MAX, value_frac=F_VALUE,
+                min_frac=MIN_FRAC, max_frac=MAX_FRAC,
                 is_random_initial=True)
             true_parameters = fpp.dictToParameters(parameter_dct)
             # Do the fit and evaluation

@@ -23,19 +23,27 @@ BIOMODEL_NUM = "biomodel_num"
 STATUS = "status"
 UNNAMED = "Unnamed:"
 NONE_DCT = {k: None for k in cn.SD_ALL}
+NUM_REPLICATION = 3
 
 
-def write_msg(model_num, msg, is_onlyreportsuccess):
+def getOutPath(num=None):
+    if num is None:
+        file_name = "biomodels_statistics.csv"
+    else:
+        file_name = "%d.csv" % num
+    return os.path.join(cn.PROJECT_DIR, file_name)
+
+def writeMessage(model_num, msg, is_only_report_success):
     if "Success" in msg:
         print("\n***Model %d: %s" % (model_num, msg))
-    elif (not is_onlyreportsuccess):
+    elif (not is_only_report_success):
         print("\n***Model %d: %s" % (model_num, msg))
     else:
         pass
     return
 
-def main(noise_mag=0, out_path=OUT_FILE, is_restart=True,
-      is_onlyreportsuccess=True, **kwargs):
+def main(noise_mag=0, out_path=OUT_FILE, is_restart=True, max_fev=int(1e3),
+      is_only_report_success=True, **kwargs):
     """
     Compares the fitted and actual values of model parameters.
 
@@ -44,7 +52,7 @@ def main(noise_mag=0, out_path=OUT_FILE, is_restart=True,
     noise_mag: float (standard deviation added to true model)
     out_path: str (where output is saved)
     is_restart: bool (ignore prior output if it exists)
-    is_onlyreportsuccess: bool (only report successfully processed files)
+    is_only_report_success: bool (only report successfully processed files)
     kwargs: dict (optional parameters to iterateBiomodels)
     
     Returns
@@ -66,7 +74,7 @@ def main(noise_mag=0, out_path=OUT_FILE, is_restart=True,
             if model is not None:
                 try:
                     dct = smt.SBMLFitter.evaluateBiomodelFit(model,
-                           noise_mag, max_fev=100000)
+                           noise_mag, max_fev=max_fev)
                 except (ValueError, RuntimeError) as exp:
                     dct[STATUS] = str(exp)
             else:
@@ -80,18 +88,23 @@ def main(noise_mag=0, out_path=OUT_FILE, is_restart=True,
                 new_dct[STATUS] = dct[STATUS]
                 accum_dct.append(new_dct)
             df = pd.DataFrame(accum_dct)
-            write_msg(model_num, dct[STATUS], is_onlyreportsuccess)
+            writeMessage(model_num, dct[STATUS], is_only_report_success)
             # Create entry for missing models
             df.to_csv(out_path)
     # Handle the missing models
     final_df = df.sort_values(BIOMODEL_NUM)
-    final_df.index = range(1, len(final_df)+1)
+    final_df = final_df.set_index(BIOMODEL_NUM)
+    final_df = final_df[final_df[cn.SD_STATUS] == "Success!"]
     for column in final_df.columns:
         if UNNAMED in column:
             del final_df[column]
     final_df.to_csv(out_path)
-    print("Done!")
     
 
 if __name__ == '__main__':
-    main(num_model=1200, noise_mag=0.1, is_restart=True, start_num=1)
+   for num in range(1, NUM_REPLICATION + 1):
+       out_path = getOutPath(num)
+       main(num_model=1200, noise_mag=0.1, is_restart=True, start_num=1,
+             out_path=out_path, max_fev=1000)
+       print("\n\n***COMPLETE REPLICATION %d***" % num)
+print("***DONE!***")
