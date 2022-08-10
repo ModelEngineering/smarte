@@ -109,7 +109,7 @@ class ReplicationAnalyzer(object):
             ax.scatter(self.df[xaxis], self.df[cn.SD_AVG_ERR], color='b')
         if is_max:
             ax.scatter(self.df[xaxis], self.df[cn.SD_MAX_ERR], color='purple')
-        ax.set_ylabel('estimation error')
+        ax.set_ylabel('estimation error (log2 estimated/actual)')
         ax.set_xlabel(xaxis)
         #
         legend_spec = mdl.cn.LegendSpec(["min", "avg", "max"])

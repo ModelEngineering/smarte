@@ -66,7 +66,7 @@ def main(noise_mag=0, out_path=OUT_FILE, is_restart=True,
             if model is not None:
                 try:
                     dct = smt.SBMLFitter.evaluateBiomodelFit(model,
-                           noise_mag, max_fev=10000)
+                           noise_mag, max_fev=100000)
                 except (ValueError, RuntimeError) as exp:
                     dct[STATUS] = str(exp)
             else:

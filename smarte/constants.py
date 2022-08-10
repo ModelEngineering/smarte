@@ -7,7 +7,7 @@ TIME = "time"
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXPERIMENT_DIR = os.path.join(PROJECT_DIR, "experiments")
 # Keys in statistics dictionary
-SD_AVG_ERR = "avg_err"  #average error in parameter estimation
+SD_AVG_ERR = "avg_err"  #average absolute value of log2 estimated/actual
 SD_AVG_TIME = "avg_time"  #average time for an evaluation
 SD_BIOMODEL_NUM = "biomodel_num"  #number of the biomodel
 SD_CNT = "cnt"  #count of instances ran
@@ -27,4 +27,4 @@ SD_QUALIFIER =  [SD_BIOMODEL_NUM, SD_METHOD,
       ]
 SD_METRIC =  [SD_AVG_ERR, SD_AVG_TIME, SD_CNT, SD_MAX_ERR, SD_MIN_ERR, SD_TOT_TIME, ]
 SD_ALL = list(SD_QUALIFIER)
-SD_ALL.append(SD_METRIC)
+SD_ALL.extend(SD_METRIC)

@@ -172,7 +172,7 @@ class SBMLFitter():
         parameter_dct = true_parameters.valuesdict()
         self.fit()
         value_dct = dict(self.fitter.final_params.valuesdict())
-        error_dct = {n: np.nan if v == 0 else (parameter_dct[n] - v)/parameter_dct[n]
+        error_dct = {n: np.nan if v == 0 else np.log2(v/parameter_dct[n])
                for n, v in value_dct.items()}
         # Calculate estimation errors
         return pd.Series(error_dct, index=value_dct.keys())
@@ -205,9 +205,10 @@ class SBMLFitter():
         abs_ser = ser.apply(lambda v: np.abs(v))
         indices = list(abs_ser.index)
         dct = {}
+        sorted_values = sorted(ser.values, key=lambda v: np.abs(v))
         dct[cn.SD_AVG_ERR] = abs_ser.mean()
-        dct[cn.SD_MAX_ERR] = abs_ser.max()
-        dct[cn.SD_MIN_ERR] = abs_ser.min()
+        dct[cn.SD_MAX_ERR] = sorted_values[-1]
+        dct[cn.SD_MIN_ERR] = sorted_values[0]
         df_stats = self.fitter.plotPerformance(is_plot=False)
         indices = list(df_stats.index)
         dct[cn.SD_METHOD] = indices[0]
