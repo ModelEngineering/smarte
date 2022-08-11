@@ -1,56 +1,16 @@
-"""Analyzes an experimental run, replications with the same factor levels."""
+"""Analyzes an experimental run consisting of many replications"""
 
-"""
-An experimental run consists of one or more replications, and each replication
-has one or more simulations. A simulation is parameterized by the following factors:
-    Parameter min, max
-    Column deleted
-    Noise_mag: randomness introduced in observational data
-    Maximum number of function evalutions
-    Algorithm
-    Parameter initial value
-    BioModel
 
-A replication contains simulations for multiple algorithms and BioModels, and 
-each algorithm for the same BioModel uses the same initial value for each parameter
-and the same synthetic observational data for each model.
-A replication is contained in a single CSV file.
-
-An experimental run constists of multiple replications, each of which uses a different
-initial value and different observational data for each parameter and BioModel.
-"""
-
+from smarte.analysis.replication_analyzer import ReplicationAnalyzer
 import smarte.constants as cn
 
+import os
 import pandas as pd
 import numpy as np
 
 
-class ReplicationAnalyzer(object):
-    # Creates a clean replication DataFrame
-    # Eliminates superfluous columns
-
-
-    def __init__(self, path):
-        """
-        Handles missing simulations in a replication.
-        
-        Parameters
-        ----------
-        path: str (path to replication CSV)
-        """
-        self.path = path
-        df = pd.read_csv(path)
-        keeps = [i == "Success!" for i in df[cn.SD_STATUS]]
-        for column in df.columns:
-            if "Unnamed:" in column:
-                del df[column]
-        del df[cn.SD_STATUS]
-        self.df = df[keeps]
-        self.df = self.df.set_index(cn.SD_BIOMODEL_NUM)
-
-    def serialize(self, path):
-        self.df.to_csv(path)
+CONDITION_SEP = "_"  # Separates conditions
+KEY_VALUE_SEP = "--" # Separates the key and its value
 
 
 class RunAnalyzer(object):
@@ -64,4 +24,74 @@ class RunAnalyzer(object):
         ----------
         path: str (path to directory with replication CSVs)
         """
-        #self.repliications =
+        self.repliications = self.getReplications(path)
+        self.condition_dct = self.getConditionDct(path)
+
+    @staticmethod
+    def getReplications(path):
+        """
+        Constructs the replication for each CSV file in the path directory
+
+        Parameters
+        ----------
+        path: str (directory)
+        
+        Returns
+        -------
+        list-ReplicationAnalyzer
+        """
+        ffile_names = os.listdir(path)
+        csv_file_names = [f for f in ffile_names if ".csv" in f]
+        csv_paths = [os.path.join(path, f) for f in csv_file_names]
+        replications = [ReplicationAnalyzer(p) for p in csv_paths]
+        return replications
+
+    @staticmethod
+    def getConditionDct(path):
+        """
+        Decodes the directory as a dictionary of conditions and values.
+
+        Parameters
+        ----------
+        path: str (path to directory)
+        
+        Returns
+        -------
+        dict
+            key: condition
+            value: value of condition
+        """
+        dct = {}
+        parts = path.split(CONDITION_SEP)
+        for part in parts:
+            pair = part.split(KEY_VALUE_SEP)
+            try:
+                value = int(pair[1])
+            except:
+                try:
+                    value = float(pair[1])
+                except:
+                    value = pair[1]
+            dct[pair[0]] = value
+        return dct
+
+    @staticmethod
+    def mkPath(condition_dct):
+        """
+        Creates the path for the condition dictionary.
+
+        Parameters
+        ----------
+        condition_dct: dict
+            key: condition ("CD" constant)
+            value: value of condition
+        
+        Returns
+        -------
+        str (path to directory)
+        """
+        filename_parts = [k + KEY_VALUE_SEP + str(v) for k, v in condition_dct.items()]
+        return CONDITION_SEP.join(filename_parts)
+        
+       
+        

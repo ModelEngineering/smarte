@@ -30,3 +30,11 @@ SD_METRIC =  [SD_MEDIAN_ERR, SD_AVG_TIME, SD_CNT, SD_MAX_ERR, SD_MIN_ERR, SD_TOT
 SD_METRIC.extend(SD_METRIC_ERROR)
 SD_ALL = list(SD_QUALIFIER)
 SD_ALL.extend(SD_METRIC)
+# Condition keys
+CD_NOISE = "Noise"
+CD_COLUMNS_DELETED = "ColumnsDeleted"
+CD_RANGE_MAX = "RangeMax"  # In units of fraction of the true parameter value
+CD_RANGE_MIN = "RangeMin"  # In units of fraction of the true parameter value
+CD_MAXFEV = "Maxfev"
+CD_ALL = [CD_NOISE, CD_COLUMNS_DELETED, CD_RANGE_MAX, CD_RANGE_MIN,
+      CD_MAXFEV]
