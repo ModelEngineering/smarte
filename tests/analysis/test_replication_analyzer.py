@@ -12,13 +12,12 @@ import numpy as np
 import unittest
 
 
-IGNORE_TEST = True
-IS_PLOT = True
+IGNORE_TEST = False
+IS_PLOT = False
 if IS_PLOT:
     matplotlib.use("TkAgg")
-DIR = os.path.join(cn.EXPERIMENT_DIR,
-       "Noise--0.1_ColumnsDeleted--0_MinMax--0.25-4.0_Maxfev--10000")
-FFILE = os.path.join(DIR, "1.csv")
+TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+TEST_FILE = os.path.join(TEST_DIR, "replication_analyzer.csv")
         
 
 #############################
@@ -27,8 +26,8 @@ FFILE = os.path.join(DIR, "1.csv")
 class TestReplicationAnalyzer(unittest.TestCase):
 
     def setUp(self):
-        self.ffile = FFILE
-        self.analyzer = ReplicationAnalyzer(FFILE)
+        self.ffile = TEST_FILE
+        self.analyzer = ReplicationAnalyzer(self.ffile)
 
     def testConstructor(self):
         if IGNORE_TEST:
@@ -45,19 +44,31 @@ class TestReplicationAnalyzer(unittest.TestCase):
     def testPlotManyTime(self):
         if IGNORE_TEST:
             return
-        self.analyzer.plotManyTimes(figsize=[15,15], is_nfev=False)
+        self.analyzer.plotManyTimes(figsize=[15,15], is_nfev=False,
+              is_plot=IS_PLOT)
 
     def testPlotOneEstimationError(self):
         if IGNORE_TEST:
             return
-        self.analyzer.plotOneEstimationError(xaxis=cn.SD_NUM_REACTION, figsize=[5,5],
-              is_plot=IS_PLOT)
+        self.analyzer.plotOneEstimationError(xaxis=cn.SD_NUM_REACTION,
+              figsize=[5,5], is_plot=IS_PLOT)
+        self.analyzer.plotOneEstimationError(xaxis=cn.SD_NUM_REACTION,
+              is_log2_ratio=False, figsize=[5,5], is_plot=IS_PLOT)
 
     def testPlotManyEstimationError(self):
-        # TESTING
-        self.analyzer.plotManyEstimationError(figsize=[15,15], is_max=False)
-        
+        if IGNORE_TEST:
+            return
+        self.analyzer.plotManyEstimationError(figsize=[15,15], is_max=False,
+              is_plot=IS_PLOT)
 
+    def testCalcErrorFraction(self):
+        if IGNORE_TEST:
+            return
+        self.assertTrue(np.isclose(self.analyzer.calcErrorFraction(-1), -0.5))
+        self.assertTrue(np.isclose(self.analyzer.calcErrorFraction(1), 1.0))
+        self.assertTrue(np.isclose(self.analyzer.calcErrorFraction(0), 0))
+        self.assertLess(self.analyzer.calcErrorFraction(0.5), 1.0)
+   
 
 if __name__ == '__main__':
   unittest.main()

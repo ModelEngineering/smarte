@@ -79,7 +79,8 @@ class ReplicationAnalyzer(object):
         return manager
 
     def plotOneEstimationError(self, manager=None, xaxis=cn.SD_NUM_SPECIES,
-        is_plot=True,  is_min=True, is_avg=True, is_max=True, **kwargs):
+        is_plot=True,  is_min=True, is_median=True, is_max=True,
+        is_log2_ratio=True, **kwargs):
         """
         Plots the model estimation accuracties.
 
@@ -88,8 +89,9 @@ class ReplicationAnalyzer(object):
         xaxis: str (variable on the x-axis)
         manager: OptionManager
         is_min: bool (plot the min estimation error)
-        is_avg: bool (plot the avg estimation error)
+        is_median: bool (plot the median estimation error)
         is_max: bool (plot the max estimation error)
+        is_log2_ration: bool (plot in units of log2 estimated/actual)
         kwargs: dict (plot options)
 
         Returns
@@ -100,19 +102,29 @@ class ReplicationAnalyzer(object):
             manager = mdl.OptionManager(kwargs)
         manager.plot_opts.set(mdl.cn.O_XLABEL, default=xaxis)
         ax = manager.plot_opts.get(mdl.cn.O_AX)
+        if is_log2_ratio:
+            df = self.df
+        else:
+            df = self.df.copy()
+            for column in cn.SD_METRIC_ERROR:
+                df[column] = self.df[column].apply(
+                      lambda v: self.calcErrorFraction(v))
         if ax is None:
             _, ax = plt.subplots()
         if is_min:
             # Number of species
-            ax.scatter(self.df[xaxis], self.df[cn.SD_MIN_ERR], color='g')
-        if is_avg:
-            ax.scatter(self.df[xaxis], self.df[cn.SD_MEDIAN_ERR], color='b')
+            ax.scatter(df[xaxis], df[cn.SD_MIN_ERR], color='g')
+        if is_median:
+            ax.scatter(df[xaxis], df[cn.SD_MEDIAN_ERR], color='b')
         if is_max:
-            ax.scatter(self.df[xaxis], self.df[cn.SD_MAX_ERR], color='purple')
-        ax.set_ylabel('estimation error (log2 estimated/actual)')
+            ax.scatter(df[xaxis], df[cn.SD_MAX_ERR], color='purple')
+        if is_log2_ratio:
+            ax.set_ylabel('estimation error (log2 estimated/actual)')
+        else:
+            ax.set_ylabel('estimation error ([estimated-actual]/actual)')
         ax.set_xlabel(xaxis)
         #
-        legend_spec = mdl.cn.LegendSpec(["min", "avg", "max"])
+        legend_spec = mdl.cn.LegendSpec(["min", "median", "max"])
         manager.plot_opts.set(mdl.cn.O_LEGEND_SPEC, default=legend_spec)
         manager.doPlotOpts()
         if is_plot:
@@ -141,12 +153,13 @@ class ReplicationAnalyzer(object):
         _ = self.plotOneTime(xaxis=cn.SD_NUM_PARAMETER, ax=ax3,
               is_plot=False, **kwargs)
         # Histograms
-        ax4a.hist(self.df[cn.SD_TOT_TIME], bins=100, density=True,
-              histtype='step', cumulative=1,)
-        ax4a.set_xlabel("total time (sec)")
-        ax4b.hist(self.df[cn.SD_CNT], bins=100, density=True,
-              histtype='step', cumulative=1,)
-        ax4b.set_xlabel("function evalutions")
+        if is_plot:
+            ax4a.hist(self.df[cn.SD_TOT_TIME], bins=100, density=True,
+                  histtype='step', cumulative=1,)
+            ax4a.set_xlabel("total time (sec)")
+            ax4b.hist(self.df[cn.SD_CNT], bins=100, density=True,
+                  histtype='step', cumulative=1,)
+            ax4b.set_xlabel("function evalutions")
         mgr.doFigOpts()
 
     def plotManyEstimationError(self, is_plot=True, **kwargs):
@@ -172,16 +185,31 @@ class ReplicationAnalyzer(object):
         _ = self.plotOneEstimationError(xaxis=cn.SD_NUM_PARAMETER, ax=ax3,
               is_plot=False, **kwargs)
         # Histograms
-        ax4a.hist(self.df[cn.SD_MIN_ERR], bins=100, density=True,
-              histtype='step', cumulative=1,)
-        ax4a.set_xlabel("min error")
-        ax4b.hist(self.df[cn.SD_MEDIAN_ERR], bins=100, density=True,
-              histtype='step', cumulative=1,)
-        ax4b.set_xlabel("median error")
-        ax4c.hist(self.df[cn.SD_MAX_ERR], bins=100, density=True,
-              histtype='step', cumulative=1,)
-        ax4c.set_xlabel("max error")
+        if is_plot:
+            ax4a.hist(self.df[cn.SD_MIN_ERR], bins=100, density=True,
+                  histtype='step', cumulative=1,)
+            ax4a.set_xlabel("min error")
+            ax4b.hist(self.df[cn.SD_MEDIAN_ERR], bins=100, density=True,
+                  histtype='step', cumulative=1,)
+            ax4b.set_xlabel("median error")
+            ax4c.hist(self.df[cn.SD_MAX_ERR], bins=100, density=True,
+                  histtype='step', cumulative=1,)
+            ax4c.set_xlabel("max error")
         mgr.doFigOpts()
-   
-        mgr.doFigOpts()
+
+    @staticmethod
+    def calcErrorFraction(log2_ratio):
+        """
+        Converts a log2 ratio of estimate/action to an error w.r.t. actual
+        as (estimate - actual)/actual.
+
+        Parameters
+        ----------
+        log2_ratio: float
+        
+        Returns
+        -------
+        float
+        """
+        return 2**log2_ratio - 1
    

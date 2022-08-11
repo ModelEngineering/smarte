@@ -284,8 +284,10 @@ class SBMLFitter():
             true_parameters = fpp.dictToParameters(parameter_dct)
             # Do the fit and evaluation
             try:
-                sfitter = cls(model, evaluate_parameters, observed_ts, **fitterpp_opt)
-                true_parameters = sfitter.subsetToMuteableParameters(true_parameters)
+                sfitter = cls(model, evaluate_parameters, observed_ts,
+                      **fitterpp_opt)
+                true_parameters = sfitter.subsetToMuteableParameters(
+                      true_parameters)
                 if len(true_parameters) > 0:
                     dct = sfitter.evaluateFit(true_parameters)
                     dct[cn.SD_BIOMODEL_NUM] = model.biomodel_num

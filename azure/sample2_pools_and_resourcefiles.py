@@ -44,6 +44,8 @@ import helpers
 _CONTAINER_NAME = 'poolsandresourcefiles'
 _SIMPLE_TASK_NAME = 'simple_task.py'
 _SIMPLE_TASK_PATH = os.path.join('simple_task.py')
+_INSTALL_TASK_NAME = 'install_task.sh'
+_INSTALL_TASK_PATH = os.path.join(_INSTALL_TASK_NAME)
 
 
 def create_pool(
@@ -73,8 +75,10 @@ def create_pool(
     sas_url = helpers.upload_blob_and_create_sas(
         blob_service_client,
         _CONTAINER_NAME,
-        _SIMPLE_TASK_NAME,
-        _SIMPLE_TASK_PATH,
+        #_SIMPLE_TASK_NAME,
+        #_SIMPLE_TASK_PATH,
+        _INSTALL_TASK_NAME,
+        _INSTALL_TASK_PATH,
         datetime.datetime.utcnow() + datetime.timedelta(hours=1))
 
     pool = batchmodels.PoolAddParameter(
@@ -85,9 +89,10 @@ def create_pool(
         vm_size=vm_size,
         target_dedicated_nodes=vm_count,
         start_task=batchmodels.StartTask(
-            command_line="python " + _SIMPLE_TASK_NAME,
+            #command_line="python " + _SIMPLE_TASK_NAME,
+            command_line="bash " + _INSTALL_TASK_NAME,
             resource_files=[batchmodels.ResourceFile(
-                            file_path=_SIMPLE_TASK_NAME,
+                            file_path=_INSTALL_TASK_NAME,
                             http_url=sas_url)]))
 
     helpers.create_pool_if_not_exist(batch_client, pool)
@@ -120,15 +125,19 @@ def submit_job_and_add_task(
     sas_url = helpers.upload_blob_and_create_sas(
         blob_service_client,
         _CONTAINER_NAME,
-        _SIMPLE_TASK_NAME,
-        _SIMPLE_TASK_PATH,
+        #_SIMPLE_TASK_NAME,
+        #_SIMPLE_TASK_PATH,
+        _INSTALL_TASK_NAME,
+        _INSTALL_TASK_PATH,
         datetime.datetime.utcnow() + datetime.timedelta(hours=1))
 
     task = batchmodels.TaskAddParameter(
-        id="MyPythonTask",
-        command_line="python " + _SIMPLE_TASK_NAME,
+        #id="MyPythonTask",
+        id="InstallTask",
+        command_line="bash " + _INSTALL_TASK_NAME,
         resource_files=[batchmodels.ResourceFile(
-                        file_path=_SIMPLE_TASK_NAME,
+                        #file_path=_SIMPLE_TASK_NAME,
+                        file_path=_INSTALL_TASK_NAME,
                         http_url=sas_url)])
 
     batch_client.task.add(job_id=job.id, task=task)

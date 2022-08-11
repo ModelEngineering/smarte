@@ -29,6 +29,11 @@ import os
 
 
 if __name__ == '__main__':
-    print("simpletask.py listing files:")
+    stg = ""
     for item in os.listdir('.'):
-        print(item)
+        stg = stg + "\n" + item
+    print(stg)
+    if False:
+        with open("output.txt", "w") as fd:
+            fd.write(stg)
+    
