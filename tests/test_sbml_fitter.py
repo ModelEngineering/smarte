@@ -148,13 +148,23 @@ class TestSBMLFitter(unittest.TestCase):
         dct = sfitter.evaluateFit(TRUE_PARAMETERS)
         self.assertTrue(isinstance(dct, dict))
         self.assertTrue("differential_evolution" in dct["method"])
+
+    def evaluateBiomodelFit(self, model_num, noise_mag, **kwargs):
+        data = smt.SBMLFitter.generateBiomodelSyntheticData(model_num,
+              noise_mag, num_dataset=1)
+        if len(data) == 0:
+            return {cn.SD_BIOMODEL_NUM: model_num}
+        dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, data[0], **kwargs)
+        dct[cn.SD_NOISE_MAG] = noise_mag
+        dct[cn.SD_NOISE_INSTANCE] = 1
+        return dct
         
     def testEvaluateBiomodelFit(self):
         if IGNORE_TEST:
             return
         model_num = 12
-        dct_0 = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
-        dct_1 = smt.SBMLFitter.evaluateBiomodelFit(model_num, 1)
+        dct_0 = self.evaluateBiomodelFit(model_num, 0)
+        dct_1 = self.evaluateBiomodelFit(model_num, 1)
         self.assertGreater(np.abs(dct_1[cn.SD_MAX_ERR]), np.abs(dct_0[cn.SD_MAX_ERR]))
         self.assertEqual(dct_0["biomodel_num"], model_num)
         
@@ -162,8 +172,8 @@ class TestSBMLFitter(unittest.TestCase):
         if IGNORE_TEST:
             return
         model_num = 12
-        dct_0 = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
-        dct_1 = smt.SBMLFitter.evaluateBiomodelFit(model_num, 1)
+        dct_0 = self.evaluateBiomodelFit(model_num, 0)
+        dct_1 = self.evaluateBiomodelFit(model_num, 1)
         self.assertGreater(np.abs(dct_1[cn.SD_MAX_ERR]), np.abs(dct_0[cn.SD_MAX_ERR]))
         self.assertEqual(dct_0["biomodel_num"], model_num)
         
@@ -172,21 +182,21 @@ class TestSBMLFitter(unittest.TestCase):
             return
         max_fev = 500
         model_num = 7
-        dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0, max_fev=max_fev)
+        dct = self.evaluateBiomodelFit(model_num, 0, max_fev=max_fev)
         self.assertLess(np.abs(dct[cn.SD_CNT] - max_fev), 2)
         
     def testEvaluateBiomodelFit17(self):
         if IGNORE_TEST:
             return
         model_num = 17
-        dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+        dct = self.evaluateBiomodelFit(model_num, 0)
         self.assertEqual(len(dct), 1)
         
     def testEvaluateBiomodelFit51(self):
         if IGNORE_TEST:
             return
         model_num = 51
-        dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+        dct = self.evaluateBiomodelFit(model_num, 0)
         self.assertEqual(len(dct), 1)
         
     def testEvaluateBiomodelFit119(self):
@@ -194,7 +204,7 @@ class TestSBMLFitter(unittest.TestCase):
             return
         model_num = 119
         try:
-            dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+            dct = self.evaluateBiomodelFit(model_num, 0)
             self.assertGreater(len(dct), 0)
         except RuntimeError:
             pass
@@ -204,7 +214,7 @@ class TestSBMLFitter(unittest.TestCase):
         if IGNORE_TEST:
             return
         model_num = 531
-        dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+        dct = self.evaluateBiomodelFit(model_num, 0)
         self.assertEqual(len(dct), 1)
         
     def testEvaluateBiomodelFit633(self):
@@ -212,7 +222,7 @@ class TestSBMLFitter(unittest.TestCase):
         if IGNORE_TEST:
             return
         model_num = 633
-        dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+        dct = self.evaluateBiomodelFit(model_num, 0)
         self.assertEqual(len(dct), 1)
         
     def testEvaluateBiomodelFit250(self):
@@ -220,14 +230,14 @@ class TestSBMLFitter(unittest.TestCase):
         if IGNORE_TEST:
             return
         model_num = 250
-        dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+        dct = self.evaluateBiomodelFit(model_num, 0)
         
     def testEvaluateBiomodelFit631(self):
         # Model generates no output
         if IGNORE_TEST:
             return
         model_num = 631
-        dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+        dct = self.evaluateBiomodelFit(model_num, 0)
         
     def testEvaluateBiomodelFit437(self):
         # Model generates no output
@@ -235,7 +245,7 @@ class TestSBMLFitter(unittest.TestCase):
             return
         model_num = 437
         try:
-            dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+            dct = self.evaluateBiomodelFit(model_num, 0)
             self.assertTrue(True)  # SHouldn't get here
         except ValueError:
             pass
@@ -248,10 +258,23 @@ class TestSBMLFitter(unittest.TestCase):
               start_num=start_model_num, num_model=100, is_allerror=True):
             print(model_num)
             try:
-                dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, 0)
+                dct = self.evaluateBiomodelFit(model_num, 0)
             except Exception as exp:
                 import pdb; pdb.set_trace()
                 pass
+        
+    def testGenerateBiomodelSyntheticData(self):
+        if IGNORE_TEST:
+            return
+        num_dataset = 20
+        data = smt.SBMLFitter.generateBiomodelSyntheticData(12, 0.1,
+              num_dataset=num_dataset)
+        self.assertEqual(len(data), num_dataset)
+        #
+        normalized_data = [d - data[0] for d in data]
+        df = pd.concat(normalized_data)
+        ser = df.mean()
+        self.assertLess(np.abs(ser.loc["Z"]), 0.1)
 
 
 if __name__ == '__main__':

@@ -1,8 +1,4 @@
-"""This tool validates fitting algorithsm"""
-
-"""
-Constructs statistics for models in BioModels.
-"""
+"""Runs experiments for cn.SD_CONTROLLED_FACTORS"""
 
 import smarte as smt
 from smarte import constants as cn
@@ -42,46 +38,47 @@ def writeMessage(model_num, msg, is_only_report_success):
         pass
     return
 
-def main(noise_mag=0, out_path=OUT_FILE, is_restart=True, max_fev=int(1e3),
-      is_only_report_success=True, **kwargs):
-    """
-    Compares the fitted and actual values of model parameters.
 
-    Parameters
-    ----------
-    noise_mag: float (standard deviation added to true model)
-    out_path: str (where output is saved)
-    is_restart: bool (ignore prior output if it exists)
-    is_only_report_success: bool (only report successfully processed files)
-    kwargs: dict (optional parameters to iterateBiomodels)
-    
-    Returns
-    -------
-    Series
-        index: parameter name
-        value: fraction error from parameter estimate
-    """
-    if os.path.isfile(out_path) and (not is_restart):
-        df = pd.read_csv(out_path)
-        accum_dct = ExtendedDict(df.to_dict())
-        accum_dct = {k: v for k,v in accum_dct.items() if not UNNAMED in k}
-    else:
-        accum_dct = ExtendedDict()
-        df = pd.DataFrame({BIOMODEL_NUM: [-1]})
-    for model_num, model in mdl.Model.iterateBiomodels(is_allerror=True, **kwargs):
-        if not model_num in df[BIOMODEL_NUM].values:
+class ExperimentRunner(object):
+
+    def __init__(self, condition_dct):
+        """
+        Parameters
+        ----------
+        condition_dct: dict
+            key: cn.SD_CONTROLLED_FACTORS
+            value: value of factor
+        """
+        self.condition_dct = condition_dct
+
+    def run(self, start_model=1, num_model=1):
+        """
+        Runs experiment for all of BioModels.
+
+        Returns
+        -------
+        dict
+        """
+        # TODO: Handle restart
+        accum_dct = ExtendedDict({k: [] for k in cn.SD_ALL})
+        for model_num, model in mdl.Model.iterateBiomodels(is_allerror=True,
+              start_model=start_model, num_model=num_model):
             dct = dict(NONE_DCT)
+            # Assign the qualifiers
+
             dct[cn.SD_NOISE_MAG] = noise_mag
             if model is not None:
+                data_ts = getTimeseries(model_num, instance_num)
                 try:
-                    data = smt.SBMLFitter.generateBiomodelSyntheticData(model_num,
-                          noise_mag, num_dataset=1)
-                    if len(data) == 0:
-                        dct[STATUS] = "Could not generate data"
-                        continue
-                    ts = data[0]
-                    new_dct = smt.SBMLFitter.evaluateBiomodelFit(model, ts,
-                            max_fev=max_fev)
+                    new_dct = smt.SBMLFitter.evaluateBiomodelFit(cls,
+                          model_num, observed_ts,
+                          range_min_frac=condition_dct[cn.SD_RANGE_MIN_FRAC],
+                          range_max_frac=condition_dct[cn.SD_RANGE_MAX_FRAC],
+                          initial_value_frac=condition_dct[cn.SD_INITIAL_VALUE_FRAC],
+                          method_names=[condition_dct[cn.SD_METHOD],
+                          max_fev=condition_dct[cn.MAX_FEV],
+                          )
+
                     dct.update(new_dct)
                 except (ValueError, RuntimeError) as exp:
                     dct[STATUS] = str(exp)

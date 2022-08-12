@@ -221,20 +221,27 @@ class SBMLFitter():
         return dct
 
     @classmethod
-    def evaluateBiomodelFit(cls, model_num, noise_mag, **fitterpp_opt):
+    def evaluateBiomodelFit(cls, model_num, observed_ts,
+           range_min_frac=0.5, range_max_frac=2.0, initial_value_frac=0,
+           **fitterpp_opt):
         """
         Compares the fitted and actual values of model parameters for a BioModel.
         Statistics are reported for the first methond only.
         Returns a status if fail.
 
-        Note that the is_collect option of Fitterpp is forced to True so that
-        certain statistics can be generated.
+        Parameters are calculated as follows:
+            min = true_value*range_min_frac
+            max = true_value*range_max_frac
+            value = true_value*initial_value_frac
     
         Parameters
         ----------
         model_num: int/Model (model number in data directory)
-        noise_mag: float
-            range of values (in units of std) added to the true simulation
+        observed_ts: Timeseries
+            data used for parameter estimation
+        range_min_frac: float
+        range_max_frac: float
+        Initial_value: float in [0, 1]
         fitterpp_opt: dict (options for Fitterpp constructor)
         
         Returns
@@ -268,19 +275,14 @@ class SBMLFitter():
         if not success:
             dct[cn.SD_STATUS] = "Could not construct model."
             return dct
-        # Prepare data for evaluation
-        observed_ts = model.simulate(noise_mag=noise_mag,
-              std_ser=model.calculateStds())
-        if observed_ts is None:
-            dct[cn.SD_STATUS] = "Could not generate observed data."
         # Construct true parameters
         fitterpp_opt = dict(fitterpp_opt)
         fitterpp_opt["is_collect"] = True
         parameter_dct = model.get(model.parameter_names)
         if (len(parameter_dct) > 0) and (len(model.species_names) > 0):
             evaluate_parameters = fpp.dictToParameters(parameter_dct,
-                min_frac=MIN_FRAC, max_frac=MAX_FRAC,
-                is_random_initial=True)
+                min_frac=range_min_frac, max_frac=range_max_frac,
+                value_frac=initial_value_frac)
             true_parameters = fpp.dictToParameters(parameter_dct)
             # Do the fit and evaluation
             try:
@@ -291,7 +293,6 @@ class SBMLFitter():
                 if len(true_parameters) > 0:
                     dct = sfitter.evaluateFit(true_parameters)
                     dct[cn.SD_BIOMODEL_NUM] = model.biomodel_num
-                    dct[cn.SD_NOISE_MAG] = noise_mag
                 else:
                     dct[cn.SD_STATUS] = "No muteable parameters."
             except (RuntimeError, IndexError):
@@ -299,3 +300,42 @@ class SBMLFitter():
         else:
             dct[cn.SD_STATUS] = "No parameters or no floating species."
         return dct
+
+    @classmethod
+    def generateBiomodelSyntheticData(cls, model_num, noise_mag, num_dataset=1):
+        """
+        Generates synthetic observational data for a model.
+    
+        Parameters
+        ----------
+        model_num: int/Model (model number in data directory)
+        noise_mag: float
+            range of values (in units of std) added to the true simulation
+        
+        Returns
+        -------
+        list-Timeseries
+        """
+        results = []
+        #
+        success = True
+        if "Model" in str(type(model_num)):
+            model = model_num
+        else:
+            try:
+                model = mdl.Model.getBiomodel(model_num)
+                if model is None:
+                    success = False
+            except Exception:
+                success = False
+        if not success:
+            return results
+        # Prepare data for evaluation
+        for _ in range(2*num_dataset):
+            if len(results) >= num_dataset:
+                break
+            observed_ts = model.simulate(noise_mag=noise_mag,
+                  std_ser=model.calculateStds())
+            results.append(observed_ts)
+        #
+        return results
