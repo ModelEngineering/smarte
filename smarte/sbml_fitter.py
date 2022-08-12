@@ -302,7 +302,7 @@ class SBMLFitter():
         return dct
 
     @classmethod
-    def generateBiomodelSyntheticData(cls, model_num, noise_mag, num_dataset=1):
+    def makeBiomodelSyntheticData(cls, model_num, noise_mag, num_dataset=1):
         """
         Generates synthetic observational data for a model.
     

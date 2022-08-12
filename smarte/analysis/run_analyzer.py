@@ -92,6 +92,3 @@ class RunAnalyzer(object):
         """
         filename_parts = [k + KEY_VALUE_SEP + str(v) for k, v in condition_dct.items()]
         return CONDITION_SEP.join(filename_parts)
-        
-       
-        

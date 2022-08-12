@@ -150,13 +150,13 @@ class TestSBMLFitter(unittest.TestCase):
         self.assertTrue("differential_evolution" in dct["method"])
 
     def evaluateBiomodelFit(self, model_num, noise_mag, **kwargs):
-        data = smt.SBMLFitter.generateBiomodelSyntheticData(model_num,
+        data = smt.SBMLFitter.makeBiomodelSyntheticData(model_num,
               noise_mag, num_dataset=1)
         if len(data) == 0:
             return {cn.SD_BIOMODEL_NUM: model_num}
         dct = smt.SBMLFitter.evaluateBiomodelFit(model_num, data[0], **kwargs)
         dct[cn.SD_NOISE_MAG] = noise_mag
-        dct[cn.SD_NOISE_INSTANCE] = 1
+        dct[cn.SD_TS_INSTANCE] = 1
         return dct
         
     def testEvaluateBiomodelFit(self):
@@ -263,11 +263,11 @@ class TestSBMLFitter(unittest.TestCase):
                 import pdb; pdb.set_trace()
                 pass
         
-    def testGenerateBiomodelSyntheticData(self):
+    def testmakeBiomodelSyntheticData(self):
         if IGNORE_TEST:
             return
         num_dataset = 20
-        data = smt.SBMLFitter.generateBiomodelSyntheticData(12, 0.1,
+        data = smt.SBMLFitter.makeBiomodelSyntheticData(12, 0.1,
               num_dataset=num_dataset)
         self.assertEqual(len(data), num_dataset)
         #
@@ -275,7 +275,7 @@ class TestSBMLFitter(unittest.TestCase):
         df = pd.concat(normalized_data)
         ser = df.mean()
         self.assertLess(np.abs(ser.loc["Z"]), 0.1)
-
+        
 
 if __name__ == '__main__':
   unittest.main()

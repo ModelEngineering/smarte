@@ -1,6 +1,14 @@
 """Runs experiments for cn.SD_CONTROLLED_FACTORS"""
 
+"""
+TODO
+1. ExperimentResult class for results accumulation. Has is_empty method.
+2. Name QUALIFIER as CONDITION_NAMES
+3. Test Condition
+"""
+
 import smarte as smt
+from smarte.experiment_condition import ExperimentCondition
 from smarte import constants as cn
 from smarte.extended_dict import ExtendedDict
 import SBMLModel as mdl
@@ -15,101 +23,107 @@ F_LOWER = 0.25  # Lower end of range for value search
 F_HIGHER = 4.0  # Upper end of range for value search
 F_INITIAL = F_LOWER  # Starting point for search
 OUT_FILE = os.path.join(cn.PROJECT_DIR, "biomodels_statistics.csv")
-BIOMODEL_NUM = "biomodel_num"
-STATUS = "status"
-UNNAMED = "Unnamed:"
-NONE_DCT = {k: None for k in cn.SD_ALL}
 NUM_REPLICATION = 3
-
-
-def getOutPath(num=None):
-    if num is None:
-        file_name = "biomodels_statistics.csv"
-    else:
-        file_name = "%d.csv" % num
-    return os.path.join(cn.PROJECT_DIR, file_name)
-
-def writeMessage(model_num, msg, is_only_report_success):
-    if "Success" in msg:
-        print("\n***Model %d: %s" % (model_num, msg))
-    elif (not is_only_report_success):
-        print("\n***Model %d: %s" % (model_num, msg))
-    else:
-        pass
-    return
 
 
 class ExperimentRunner(object):
 
-    def __init__(self, condition_dct):
+    def __init__(self, condition):
         """
         Parameters
         ----------
-        condition_dct: dict
-            key: cn.SD_CONTROLLED_FACTORS
-            value: value of factor
+        condition: ExperimentCondition
         """
-        self.condition_dct = condition_dct
+        self.condition = condition
+        self.out_path = self.mkPathName()
 
-    def run(self, start_model=1, num_model=1):
+    def _writeMessage(self, model_num, msg, is_only_report_success):
+        if "Success" in msg:
+            print("\n***Model %d: %s" % (model_num, msg))
+        elif (not is_only_report_success):
+            print("\n***Model %d: %s" % (model_num, msg))
+        else:
+            pass
+        return
+
+    def mkPathName(self):
         """
-        Runs experiment for all of BioModels.
+        Creates a path to the CSV file for the conditions used in this experiment.
+
+        Returns
+        -------
+        str
+        """
+        filename = "%s.csv" % str(self.condition)
+        return os.path.join(cn.EXPERIMENT_DIR, filename)
+
+    def run(self, start_model=1, num_model=1, is_recover=True):
+        """
+        Runs experiment for all of BioModels. Has recovery capability
+        where continues with an existing CSV file.
+
+        Parameters
+        ----------
+        start_model: int
+        num_model: int
+        is_recover: bool (recover existing results if they exist)
 
         Returns
         -------
         dict
         """
-        # TODO: Handle restart
-        accum_dct = ExtendedDict({k: [] for k in cn.SD_ALL})
+        # Handle restart
+        if os.path.isfile(self.out_path) and is_recover:
+            df = pd.read_csv(self.out_path)
+            results = ExperimentResult(df.to_dict())
+        else:
+            results = ExperimentResult()
+        # Iterate across the models
         for model_num, model in mdl.Model.iterateBiomodels(is_allerror=True,
               start_model=start_model, num_model=num_model):
-            dct = dict(NONE_DCT)
+            result = ExperimentResult()
+            if model is None:
+                result[cn.SD_STATUS] = "Cannot create model."
             # Assign the qualifiers
-
-            dct[cn.SD_NOISE_MAG] = noise_mag
-            if model is not None:
-                data_ts = getTimeseries(model_num, instance_num)
+            else:
+                # TODO
+                data_ts = self.getTimeseries()
                 try:
                     new_dct = smt.SBMLFitter.evaluateBiomodelFit(cls,
                           model_num, observed_ts,
-                          range_min_frac=condition_dct[cn.SD_RANGE_MIN_FRAC],
-                          range_max_frac=condition_dct[cn.SD_RANGE_MAX_FRAC],
-                          initial_value_frac=condition_dct[cn.SD_INITIAL_VALUE_FRAC],
-                          method_names=[condition_dct[cn.SD_METHOD],
-                          max_fev=condition_dct[cn.MAX_FEV],
+                          range_min_frac=condition[cn.SD_RANGE_MIN_FRAC],
+                          range_max_frac=condition[cn.SD_RANGE_MAX_FRAC],
+                          initial_value_frac=condition[cn.SD_INITIAL_VALUE_FRAC],
+                          method_names=[condition[cn.SD_METHOD],
+                          max_fev=condition[cn.MAX_FEV],
                           )
-
-                    dct.update(new_dct)
+                    result.update(dct)
                 except (ValueError, RuntimeError) as exp:
-                    dct[STATUS] = str(exp)
-            else:
-                dct[STATUS] = "Cannot create model."
+                    result[cn.SD_STATUS] = str(exp)
             # Accumulate results
-            if len(dct) > 1:
-                accum_dct.append(dct)
-            else:
-                new_dct = dict(NONE_DCT)
-                new_dct[BIOMODEL_NUM] = model_num
-                new_dct[STATUS] = dct[STATUS]
-                accum_dct.append(new_dct)
-            df = pd.DataFrame(accum_dct)
-            writeMessage(model_num, dct[STATUS], is_only_report_success)
+            results.append(dct)
+            df = pd.DataFrame(results)
+            self._writeMessage(model_num, dct[cn.SD_STATUS], is_only_report_success)
             # Create entry for missing models
             df.to_csv(out_path)
-    # Handle the missing models
-    final_df = df.sort_values(BIOMODEL_NUM)
-    final_df = final_df.set_index(BIOMODEL_NUM)
-    final_df = final_df[final_df[cn.SD_STATUS] == "Success!"]
-    for column in final_df.columns:
-        if UNNAMED in column:
-            del final_df[column]
-    final_df.to_csv(out_path)
-    
+        # Handle the missing models
+        final_df = df.sort_values(cn.SD_BIOMODEL_NUM)
+        final_df = final_df.set_index(cn.SD_BIOMODEL_NUM)
+        final_df = final_df[final_df[cn.SD_STATUS] == "Success!"]
+        for column in final_df.columns:
+            if UNNAMED in column:
+                del final_df[column]
+        final_df.to_csv(self.out_path)
 
-if __name__ == '__main__':
-   for num in range(1, NUM_REPLICATION + 1):
-       out_path = getOutPath(num)
-       main(num_model=13, noise_mag=0.1, is_restart=True, start_num=1,
-             out_path=out_path, max_fev=1000)
-       print("\n\n***COMPLETE REPLICATION %d***" % num)
-print("***DONE!***")
+    def getTimeseries(self):
+        """
+        Obtains the timeseries for the model and replication instance.
+
+        Returns
+        -------
+        Timeseries
+        """
+        path = os.path.join(cn.DATA_DIR, str(self.condition[cn.SD_BIOMODEL_NUM]))
+        filename = "%d.csv" % self.condition[cn.TS_INSTANCE]
+        path = os.path.join(path, filename)
+        return pd.read_csv(path)
