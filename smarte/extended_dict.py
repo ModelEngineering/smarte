@@ -1,6 +1,23 @@
 """Extensions to Dictionary type"""
 
+# Separators
+KEY_VALUE_SEP = "__"  # Separates key-value pairs
+VALUE_SEP = "--" # Separates the key from its value and values from one another
+
+
 class ExtendedDict(dict):
+
+    def __init__(self, *pargs, is_elemental=True, **kwargs):
+        """
+        Parameters
+        ----------
+        is_elemental: bool (values are elemental types or list)
+
+        Returns
+        -------
+        """
+        super().__init__(*pargs, **kwargs)
+        self.is_elemental = is_elemental
 
     def append(self, dct):
         """
@@ -17,17 +34,32 @@ class ExtendedDict(dict):
                 self[key] = []
         for key, value in dct.items():
             self[key].append(value)
-    
+
     def __str__(self):
         """
-        Creates a name based on the keys and values.
+        Creates a name based on the keys and values. Works
+        for elementary types.
 
         Returns
         -------
         str
         """
-        names = [k + cn.KEY_VALUE_SEP + str(v) for k, v in self.items()]
-        return cn.KEY_SEP.join(names)
+        def stringify(key, value):
+            return key + VALUE_SEP + str(value)
+        #
+        if self.is_elemental:
+            names = []
+            for key, value in self.items():
+                if isinstance(value, str):
+                    name = stringify(key, value)
+                elif isinstance(value, list):
+                    value_name = VALUE_SEP.join([str(v) for v in value])
+                    name = stringify(key, value_name)
+                else:
+                    name = stringify(key, value)
+                names.append(name)
+            return KEY_VALUE_SEP.join(names)
+        return super().__str__()
 
     def equals(self, other):
         """
@@ -36,7 +68,7 @@ class ExtendedDict(dict):
         Parameters
         ----------
         ExtendedDict
-        
+
         Returns
         -------
         bool
@@ -51,21 +83,54 @@ class ExtendedDict(dict):
         Parameters
         ----------
         stg: str (string representation)
-        
+
         Returns
         -------
         ExtendedDict
         """
-        dct = {}
-        key_values = condition_str.split(cn.KEY_SEP)
-        for key_value in key_values:
-            key, value = key_value.split(cn.KEY_VALUE_SEP)
-            try:
+        def convert(value):
+            """
+            Converts to correct type.
+
+            Parameters
+            ----------
+            value: str
+
+            Returns
+            -------
+            int, bool, float, str
+            """
+            # bool
+            if str(value) in ["True", "False"]:
+                new_value = eval(value)
+            # int
+            elif isinstance(value, int):
                 new_value = int(value)
-            except ValueError:
-                try:
-                    new_value = float(value)
-                except ValueError:
-                    new_value = value
-            dct[key] = new_value
+            # float
+            elif isinstance(value, float):
+                new_value = float(value)
+            # str
+            else:
+                new_value = value
+            return new_value
+        #
+        dct = {}
+        key_values = stg.split(KEY_VALUE_SEP)
+        for key_value in key_values:
+            # Parse the key and value(s)
+            parts = key_value.split(VALUE_SEP)
+            if len(parts) == 2:
+                key, values = parts
+            elif len(parts) < 2:
+                raise RuntimeError("Wrong size.")
+            else:
+                key = parts[0]
+                values = parts[1:]
+            # Decode the types
+            if isinstance(values, str):
+                dct[key] = values
+            elif isinstance(values, list):
+                dct[key] = [convert(v) for v in values]
+            else:
+                dct[key] = values
         return cls(**dct)

@@ -1,7 +1,6 @@
 import unittest
 
-from smarte.extended_dict import ExtendedDict
-import smarte.constants as cn
+from smarte.extended_dict import ExtendedDict, KEY_VALUE_SEP, VALUE_SEP
 
 IGNORE_TEST = False
 IS_PLOT = False
@@ -38,15 +37,21 @@ class TestExtendedDict(unittest.TestCase):
         if IGNORE_TEST:
             return
         stg = str(self.dict)
-        self.assertEqual(stg.count(cn.KEY_VALUE_SEP), len(DCT))
+        self.assertEqual(stg.count(KEY_VALUE_SEP), len(DCT)-1)
+        self.assertEqual(stg.count(VALUE_SEP), len(DCT))
+        #
+        dct = ExtendedDict({"a": [100, 200.2], "b": "testing", "c": 1.04})
+        stg = str(dct)
+        self.assertEqual(stg.count(KEY_VALUE_SEP), len(dct)-1)
+        self.assertEqual(stg.count(VALUE_SEP), len(dct)+1)
 
     def testEquals(self):
         if IGNORE_TEST:
             return
-        self.assertTrue(self.dict.equals(ExtendedDict(DCT))
+        self.assertTrue(self.dict.equals(ExtendedDict(DCT)))
         dct = ExtendedDict(DCT)
         del dct["a"]
-        self.assertFalse(self.dict.equals(ExtendedDict(dct))
+        self.assertFalse(self.dict.equals(ExtendedDict(dct)))
 
     def testGet(self):
         if IGNORE_TEST:
@@ -54,8 +59,11 @@ class TestExtendedDict(unittest.TestCase):
         stg = str(self.dict)
         dct = self.dict.get(stg)
         self.assertTrue(dct.equals(self.dict))
-
-
+        #
+        dct = ExtendedDict({"a": [100, 200.2], "b": "testing", "c": 1.04})
+        stg = str(dct)
+        new_dct = ExtendedDict.get(stg)
+        self.assertTrue(dct.equals(new_dct))
 
 
 if __name__ == '__main__':
