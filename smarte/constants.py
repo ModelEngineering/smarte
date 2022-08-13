@@ -23,7 +23,7 @@ SD_NUM_PARAMETER = "num_parameter"  #number of parameters
 SD_TOT_TIME = "tot_time"  #total run time
 SD_TS_INSTANCE = "ts_instance"  # instance of the synthetic observational data
 SD_NOISE_MAG = "noise_mag"  #magnitude of the noise used
-SD_RANGE_INITIAL_FRAC = "range_max_frac"  # fraction of value for initial value
+SD_RANGE_INITIAL_FRAC = "range_initial_frac"  # fraction of value for initial value
 SD_RANGE_MAX_FRAC = "range_max_frac"  # fraction of value for max of range
 SD_RANGE_MIN_FRAC = "range_min_frac"  # fraction of value for min of range
 SD_STATUS = "status"  #str (reason for failure)
@@ -32,21 +32,20 @@ SD_STATUS = "status"  #str (reason for failure)
 SD_CONDITIONS = [SD_METHOD, SD_NOISE_MAG,  SD_RANGE_MIN_FRAC,
       SD_RANGE_MAX_FRAC, SD_RANGE_INITIAL_FRAC, SD_COLUMNS_DELETED,
       SD_MAX_FEV, SD_TS_INSTANCE,]
-SD_QUALIFIER =  [SD_BIOMODEL_NUM,
-      SD_NUM_SPECIES, SD_NUM_REACTION, SD_NUM_PARAMETER, SD_STATUS,
+SD_MODEL_DESCRIPTORS =  [SD_BIOMODEL_NUM,
+      SD_NUM_SPECIES, SD_NUM_REACTION, SD_NUM_PARAMETER,
       ]
-SD_QUALIFIER.extend(SD_CONDITIONS)
-SD_METRIC_ERROR =  [SD_MEDIAN_ERR, SD_MAX_ERR, SD_MIN_ERR]
-SD_METRIC_TIME =  [SD_AVG_TIME, SD_CNT, SD_TOT_TIME, ]
-SD_METRIC = list(SD_METRIC_ERROR)
-SD_METRIC.extend(SD_METRIC_TIME)
-SD_ALL = list(SD_QUALIFIER)
-SD_ALL.extend(SD_METRIC)
-# Condition keys
-CD_NOISE = "Noise"
-CD_COLUMNS_DELETED = "ColumnsDeleted"
-CD_RANGE_MAX = "RangeMax"  # In units of fraction of the true parameter value
-CD_RANGE_MIN = "RangeMin"  # In units of fraction of the true parameter value
-CD_MAX_FEV = "Maxfev"
-CD_ALL = [CD_NOISE, CD_COLUMNS_DELETED, CD_RANGE_MAX, CD_RANGE_MIN,
-      CD_MAX_FEV]
+SD_QUALIFIERS = list(SD_MODEL_DESCRIPTORS)
+SD_QUALIFIERS.extend(SD_CONDITIONS)
+SD_QUALIFIERS.extend(SD_MODEL_DESCRIPTORS)
+SD_ERROR_METRICS =  [SD_MEDIAN_ERR, SD_MAX_ERR, SD_MIN_ERR]
+SD_TIME_METRICS =  [SD_AVG_TIME, SD_CNT, SD_TOT_TIME, ]
+SD_METRICS = list(SD_ERROR_METRICS)
+SD_METRICS.extend(SD_TIME_METRICS)
+SD_METRICS.append(SD_STATUS)
+SD_ALL = list(SD_QUALIFIERS)
+SD_ALL.extend(SD_METRICS)
+
+# Separators
+KEY_SEP = "__"  # Separates conditions
+KEY_VALUE_SEP = "--" # Separates the key and its value

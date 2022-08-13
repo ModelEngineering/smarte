@@ -1,60 +1,41 @@
 """Description of an experimental condition, items controlled in an experiment."""
 
+"""
+An ExperimentCondition is a specification of a level for all factors. This is represented
+as a dictionary where the keys are factors and their value is a level.
+"""
+
 import smarte.constants as cn
+from smarte.extended_dict import ExtendedDict
 
 import pandas as pd
 import os
 
-CONDITION_SEP = "_"  # Separates conditions
-KEY_VALUE_SEP = "--" # Separates the key and its value
 
+class ExperimentCondition(ExtendedDict):
 
-class ExperimentCondition(dict):
-
-    def __init__(self, **kwargs):
-        super.__init__()
-        for key in self.keys():
-            if not key in cn.SD_CONTROLLED_FACTORS:
-                raise ValueError("Invalid condition: %s" % k)
-        for key in cn.SD_CONTROLLED_FACTORS:
-            if not key in self.keys():
-                raise ValueError("Missing value for condition: %s" % key)
-    
-    def __str__(self):
+    def __init__(self, 
+          method="differential_evolution",
+          noise_mag=0,
+          range_min_frac=0.5,
+          range_max_frac=2,
+          range_initial_frac=0.5,
+          columns_deleted=0,
+          max_fev=1000,
+          ts_instance=1
+          ):
         """
-        Creates a name based on the conditions.
-
-        Returns
-        -------
-        str
-        """
-        names = [k + KEY_VALUE_SEP + str(v) for k, v in self.dct.items()]
-        return CONDITION_SEP.join(names)
-
-    @classmethod
-    def getCondition(cls, name):
-        """
-        Decodes the name.
-
         Parameters
         ----------
-        path: str (path to directory)
-        
-        Returns
-        -------
-        Condition
-            key: condition
-            value: value of condition
+        method: str (algorithm)
+        noise_mag: float
+        range_min_frac: float (lower bound of parameter range as fraction true value)
+        range_max_frac: float (upper bound of parameter range as fraction true value)
+        range_initial_frac: float (initial parameter value as fraction true value)
+        columns_deleted: int (number of columns deleted)
+        max_fev: int (maximum number of function evaluations)
+        ts_instance: int (instance of the synthetic observed data)
         """
-        dct = {}
-        for part in name:
-            pair = part.split(KEY_VALUE_SEP)
-            try:
-                value = int(pair[1])
-            except:
-                try:
-                    value = float(pair[1])
-                except:
-                    value = pair[1]
-            dct[pair[0]] = value
-        return cls(**dct)
+        super().__init__()
+        for key in cn.SD_CONDITIONS:
+            self[key] = eval(key)
