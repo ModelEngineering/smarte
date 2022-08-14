@@ -15,6 +15,7 @@ import os
 class ExperimentCondition(ExtendedDict):
 
     def __init__(self, 
+          biomodel_num=cn.SD_CONDITION_VALUE_ALL,
           method="differential_evolution",
           noise_mag=0,
           range_min_frac=0.5,
@@ -22,7 +23,7 @@ class ExperimentCondition(ExtendedDict):
           range_initial_frac=0.5,
           columns_deleted=0,
           max_fev=1000,
-          ts_instance=1
+          ts_instance=cn.SD_CONDITION_VALUE_ALL,
           ):
         """
         Parameters
@@ -37,5 +38,15 @@ class ExperimentCondition(ExtendedDict):
         ts_instance: int (instance of the synthetic observed data)
         """
         super().__init__()
+        self.kwargs = ExtendedDict({})  # Arguments passed
+        # TODO: Handle "*" values
+        # TODO: biomodel_num is a Factor?
         for key in cn.SD_CONDITIONS:
-            self[key] = eval(key)
+            self.kwargs[key] = eval(key)
+            if eval(key) == cn.SD_CONDITION_VALUE_ALL:
+                self[key] = cn.SD_CONDITION_VALUE_ALL_DCT[key]
+            else:
+                self[key] = eval(key)
+
+    def __str__(self):
+        return str(self.kwargs)

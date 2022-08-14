@@ -1,5 +1,6 @@
 """Constants used in smarte"""
 import os
+import zipfile
 
 END_TIME = 5  # Default simulation end time
 START_TIME = 0  # Default simulation start time
@@ -29,12 +30,10 @@ SD_RANGE_MIN_FRAC = "range_min_frac"  # fraction of value for min of range
 SD_STATUS = "status"  #str (reason for failure)
 # A califier is something the descries the model or the experiment
 # These values are not aggregated
-SD_CONDITIONS = [SD_METHOD, SD_NOISE_MAG,  SD_RANGE_MIN_FRAC,
+SD_CONDITIONS = [SD_BIOMODEL_NUM, SD_METHOD, SD_NOISE_MAG,  SD_RANGE_MIN_FRAC,
       SD_RANGE_MAX_FRAC, SD_RANGE_INITIAL_FRAC, SD_COLUMNS_DELETED,
       SD_MAX_FEV, SD_TS_INSTANCE,]
-SD_MODEL_DESCRIPTORS =  [SD_BIOMODEL_NUM,
-      SD_NUM_SPECIES, SD_NUM_REACTION, SD_NUM_PARAMETER,
-      ]
+SD_MODEL_DESCRIPTORS = [SD_NUM_SPECIES, SD_NUM_REACTION, SD_NUM_PARAMETER]
 SD_QUALIFIERS = list(SD_MODEL_DESCRIPTORS)
 SD_QUALIFIERS.extend(SD_CONDITIONS)
 SD_QUALIFIERS.extend(SD_MODEL_DESCRIPTORS)
@@ -45,7 +44,9 @@ SD_METRICS.extend(SD_TIME_METRICS)
 SD_METRICS.append(SD_STATUS)
 SD_ALL = list(SD_QUALIFIERS)
 SD_ALL.extend(SD_METRICS)
-
-# Separators
-KEY_SEP = "__"  # Separates conditions
-KEY_VALUE_SEP = "--" # Separates the key and its value
+# Universal values for conditions
+SD_CONDITION_VALUE_ALL = "*"
+SD_CONDITION_VALUE_ALL_DCT = {
+      SD_BIOMODEL_NUM: list(range(1, 1200)),
+      SD_TS_INSTANCE:  list(range(1, 4)),
+      }

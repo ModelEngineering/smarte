@@ -1,5 +1,6 @@
 
-from smarte.experiment_condition import ExperimentCondition, KEY_VALUE_SEP
+from smarte.experiment_condition import ExperimentCondition
+from smarte.extended_dict import KEY_VALUE_SEP, VALUE_SEP
 import smarte.constants as cn
 
 import unittest
@@ -26,13 +27,17 @@ class TestExperimentCondition(unittest.TestCase):
         if IGNORE_TEST:
             return
         stg = str(self.condition)
-        self.assertEqual(stg.count(KEY_VALUE_SEP), len(cn.SD_CONDITIONS))
+        self.assertEqual(stg.count(VALUE_SEP), len(cn.SD_CONDITIONS))
+        #
+        condition = ExperimentCondition(biomodel_num=[1, 2])
+        stg = str(condition)
+        self.assertEqual(stg.count(VALUE_SEP), len(cn.SD_CONDITIONS)+1)
 
-    def testGetCondition(self):
+    def testGet(self):
         if IGNORE_TEST:
             return
         stg = str(self.condition)
-        condition = self.condition.getCondition(stg)
+        condition = self.condition.get(stg)
         self.assertTrue(condition.equals(self.condition))
 
 
