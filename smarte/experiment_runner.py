@@ -1,11 +1,5 @@
 """Runs experiments for cn.SD_CONTROLLED_FACTORS"""
 
-"""
-TODO
-1. ExperimentResult class for results accumulation. Has is_empty method.
-2. Name QUALIFIER as CONDITION_NAMES
-3. Test Condition
-"""
 
 import smarte as smt
 from smarte.experiment_condition import ExperimentCondition
@@ -28,14 +22,15 @@ NUM_REPLICATION = 3
 
 class ExperimentRunner(object):
 
-    def __init__(self, condition):
+    def __init__(self, condition, directory=cn.EXPERIMENT_DIR):
         """
         Parameters
         ----------
         condition: ExperimentCondition
         """
         self.condition = condition
-        self.out_path = self.mkPathName()
+        self.directory = directory
+        self.out_path = self.makePath(self.condition, self.directory)
 
     def _writeMessage(self, model_num, msg, is_only_report_success):
         if "Success" in msg:
@@ -46,16 +41,22 @@ class ExperimentRunner(object):
             pass
         return
 
-    def mkPathName(self):
+    @staticmethod
+    def makePath(condition, directory):
         """
-        Creates a path to the CSV file for the conditions used in this experiment.
+        Consturcts a path to the CSV file for the conditions used in this experiment.
+
+        Parameters
+        ----------
+        condition: ExperimentCondition
+        directory: str
 
         Returns
         -------
         str
         """
-        filename = "%s.csv" % str(self.condition)
-        return os.path.join(cn.EXPERIMENT_DIR, filename)
+        filename = "%s.csv" % str(condition)
+        return os.path.join(directory, filename)
 
     def run(self, start_model=1, num_model=1, is_recover=True):
         """
@@ -94,7 +95,7 @@ class ExperimentRunner(object):
                           range_min_frac=condition[cn.SD_RANGE_MIN_FRAC],
                           range_max_frac=condition[cn.SD_RANGE_MAX_FRAC],
                           initial_value_frac=condition[cn.SD_INITIAL_VALUE_FRAC],
-                          method_names=[condition[cn.SD_METHOD],
+                          method_names=condition[cn.SD_METHOD],
                           max_fev=condition[cn.MAX_FEV],
                           )
                     result.update(dct)

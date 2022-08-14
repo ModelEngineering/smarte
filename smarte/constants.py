@@ -45,7 +45,7 @@ SD_METRICS.append(SD_STATUS)
 SD_ALL = list(SD_QUALIFIERS)
 SD_ALL.extend(SD_METRICS)
 # Universal values for conditions
-SD_CONDITION_VALUE_ALL = "*"
+SD_CONDITION_VALUE_ALL = "all"
 SD_CONDITION_VALUE_ALL_DCT = {
       SD_BIOMODEL_NUM: list(range(1, 1200)),
       SD_TS_INSTANCE:  list(range(1, 4)),
