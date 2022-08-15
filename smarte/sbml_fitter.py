@@ -8,20 +8,13 @@ Provides statistics on fitting collections of BioModels.
 Synthetic data are
 """
 
-import smarte
 import smarte.constants as cn
 import fitterpp as fpp
 import SBMLModel as mdl
 
-import SBMLModel as mdl
-import copy
-import fitterpp as fpp
 import lmfit
 import numpy as np
-import os
 import pandas as pd
-import tellurium as te
-import typing
 
 MIN_FRAC = 0.5
 MAX_FRAC = 2
@@ -89,7 +82,7 @@ class SBMLFitter():
         Parameters
         ----------
         parameters: lmfit.Parameters(parameters to evaluate)
-        
+
         Returns
         -------
         lmfit.Parameters
@@ -103,20 +96,20 @@ class SBMLFitter():
                 self.model.set({name: value})
                 parameter = parameters.get(name)
                 new_parameters.add(parameter)
-            except:
+            except Exception:
                 continue
         return new_parameters
-     
+
     def _simulate(self, is_dataframe=False, **parameter_dct):
         """
         Runs the simulation for particular parameter values.
- 
+
         Parameters
         ----------
         parameter_dct:
             key: parameter name
             value: value assigned
-        
+
         Returns
         -------
         Timeseries if is_dataframe
@@ -159,7 +152,7 @@ class SBMLFitter():
         Parameters
         ----------
         true_parameters: lmfit.Parameters
-        
+
         Returns
         -------
         pd.Series
@@ -183,7 +176,7 @@ class SBMLFitter():
         Parameters
         ----------
         true_parameters: lmfit.Parameters
-        
+
         Returns
         -------
         dict
@@ -233,7 +226,7 @@ class SBMLFitter():
             min = true_value*range_min_frac
             max = true_value*range_max_frac
             value = true_value*initial_value_frac
-    
+
         Parameters
         ----------
         model_num: int/Model (model number in data directory)
@@ -243,7 +236,7 @@ class SBMLFitter():
         range_max_frac: float
         Initial_value: float in [0, 1]
         fitterpp_opt: dict (options for Fitterpp constructor)
-        
+
         Returns
         -------
         dict
@@ -270,7 +263,7 @@ class SBMLFitter():
                 model = mdl.Model.getBiomodel(model_num)
                 if model is None:
                     success = False
-            except Exception as exp:
+            except Exception:
                 success = False
         if not success:
             dct[cn.SD_STATUS] = "Could not construct model."
@@ -305,13 +298,13 @@ class SBMLFitter():
     def makeBiomodelSyntheticData(cls, model_num, noise_mag, num_dataset=1):
         """
         Generates synthetic observational data for a model.
-    
+
         Parameters
         ----------
         model_num: int/Model (model number in data directory)
         noise_mag: float
             range of values (in units of std) added to the true simulation
-        
+
         Returns
         -------
         list-Timeseries

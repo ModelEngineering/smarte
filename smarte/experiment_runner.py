@@ -2,16 +2,11 @@
 
 
 import smarte as smt
-from smarte.experiment_condition import ExperimentCondition
 from smarte import constants as cn
-from smarte.extended_dict import ExtendedDict
 import SBMLModel as mdl
 
 import os
-import lmfit
-import numpy as np
 import pandas as pd
-import os
 
 F_LOWER = 0.25  # Lower end of range for value search
 F_HIGHER = 4.0  # Upper end of range for value search
@@ -35,7 +30,6 @@ class ExperimentRunner(object):
     def _writeMessage(self, model_num, msg, is_report):
         if is_report:
             print("\n***Model %d: %s" % (model_num, msg))
-        return
 
     @staticmethod
     def makePath(condition, directory=cn.EXPERIMENT_DIR):
@@ -149,7 +143,7 @@ class ExperimentRunner(object):
         path: str (explicit path to use)
         condition: ExperimentCondition (used to infer path if no explicit path)
         directory: str (contains file)
-        
+
         Returns
         -------
         DataFrame
@@ -163,7 +157,7 @@ class ExperimentRunner(object):
         return df
 
 if __name__ == '__main__':
-    condition = smt.ExperimentCondition(biomodel_num=list(range(1, 11)),
+    a_condition = smt.ExperimentCondition(biomodel_num=list(range(1, 11)),
           ts_instance=[1,2])
-    runner = smt.ExperimentRunner(condition)
+    runner = smt.ExperimentRunner(a_condition)
     runner.run()

@@ -9,13 +9,10 @@ import smarte.constants as cn
 from smarte.extended_dict import ExtendedDict
 from smarte.iterate_dict import iterateDict
 
-import pandas as pd
-import os
-
 
 class ExperimentCondition(ExtendedDict):
 
-    def __init__(self, 
+    def __init__(self,
           biomodel_num=cn.SD_CONDITION_VALUE_ALL,
           method="differential_evolution",
           noise_mag=0,
@@ -38,7 +35,17 @@ class ExperimentCondition(ExtendedDict):
         max_fev: int (maximum number of function evaluations)
         ts_instance: int (instance of the synthetic observed data)
         """
-        super().__init__()
+        super().__init__(
+              biomodel_num=biomodel_num,
+              method=method,
+              noise_mag=noise_mag,
+              range_min_frac=range_min_frac,
+              range_max_frac=range_max_frac,
+              range_initial_frac=range_initial_frac,
+              columns_deleted=columns_deleted,
+              max_fev=max_fev,
+              ts_instance=ts_instance,
+        )
         self.kwargs = ExtendedDict({})  # Arguments passed
         for key in cn.SD_CONDITIONS:
             self.kwargs[key] = eval(key)

@@ -3,9 +3,6 @@
 import smarte.constants as cn
 from smarte.extended_dict import ExtendedDict
 
-import pandas as pd
-import numpy as np
-
 
 UNNAMED = "Unnamed:"
 
@@ -33,7 +30,7 @@ class ExperimentResult(ExtendedDict):
         -------
         bool
         """
-        return all([not self[k] is None for k in self.keys()])
+        return all([not v is None for k, v in self.items()])
 
     @classmethod
     def makeAggregateResult(cls, df=None):
@@ -43,7 +40,7 @@ class ExperimentResult(ExtendedDict):
         Parameters
         ----------
         df: DataFrame
-        
+
         Returns
         -------
         ExperimentResult
