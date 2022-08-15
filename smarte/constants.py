@@ -5,6 +5,7 @@ import zipfile
 END_TIME = 5  # Default simulation end time
 START_TIME = 0  # Default simulation start time
 TIME = "time"
+MILLISECONDS = "milliseconds"
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXPERIMENT_DIR = os.path.join(PROJECT_DIR, "experiments")
 DATA_DIR = os.path.join(PROJECT_DIR, "data")
@@ -36,7 +37,6 @@ SD_CONDITIONS = [SD_BIOMODEL_NUM, SD_METHOD, SD_NOISE_MAG,  SD_RANGE_MIN_FRAC,
 SD_MODEL_DESCRIPTORS = [SD_NUM_SPECIES, SD_NUM_REACTION, SD_NUM_PARAMETER]
 SD_QUALIFIERS = list(SD_MODEL_DESCRIPTORS)
 SD_QUALIFIERS.extend(SD_CONDITIONS)
-SD_QUALIFIERS.extend(SD_MODEL_DESCRIPTORS)
 SD_ERROR_METRICS =  [SD_MEDIAN_ERR, SD_MAX_ERR, SD_MIN_ERR]
 SD_TIME_METRICS =  [SD_AVG_TIME, SD_CNT, SD_TOT_TIME, ]
 SD_METRICS = list(SD_ERROR_METRICS)

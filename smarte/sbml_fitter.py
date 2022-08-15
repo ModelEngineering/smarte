@@ -270,7 +270,7 @@ class SBMLFitter():
                 model = mdl.Model.getBiomodel(model_num)
                 if model is None:
                     success = False
-            except Exception:
+            except Exception as exp:
                 success = False
         if not success:
             dct[cn.SD_STATUS] = "Could not construct model."

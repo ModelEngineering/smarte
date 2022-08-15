@@ -32,17 +32,13 @@ class ExperimentRunner(object):
         self.directory = directory
         self.out_path = self.makePath(self.condition, self.directory)
 
-    def _writeMessage(self, model_num, msg, is_only_report_success):
-        if "Success" in msg:
+    def _writeMessage(self, model_num, msg, is_report):
+        if is_report:
             print("\n***Model %d: %s" % (model_num, msg))
-        elif (not is_only_report_success):
-            print("\n***Model %d: %s" % (model_num, msg))
-        else:
-            pass
         return
 
     @staticmethod
-    def makePath(condition, directory):
+    def makePath(condition, directory=cn.EXPERIMENT_DIR):
         """
         Consturcts a path to the CSV file for the conditions used in this experiment.
 
@@ -58,73 +54,116 @@ class ExperimentRunner(object):
         filename = "%s.csv" % str(condition)
         return os.path.join(directory, filename)
 
-    def run(self, start_model=1, num_model=1, is_recover=True):
+    def run(self, is_recover=True, is_report=True):
         """
         Runs experiment for all of BioModels. Has recovery capability
         where continues with an existing CSV file.
 
         Parameters
         ----------
-        start_model: int
-        num_model: int
         is_recover: bool (recover existing results if they exist)
+        is_report: bool (report progress)
 
         Returns
         -------
-        dict
+        DataFrame
+            columns: cn.SD_ALL
+            index: biomodel_num
         """
         # Handle restart
         if os.path.isfile(self.out_path) and is_recover:
             df = pd.read_csv(self.out_path)
-            results = ExperimentResult(df.to_dict())
+            results = smt.ExperimentResult.makeAggregateResult(df)
         else:
-            results = ExperimentResult()
+            results = smt.ExperimentResult.makeAggregateResult()
         # Iterate across the models
-        for model_num, model in mdl.Model.iterateBiomodels(is_allerror=True,
-              start_model=start_model, num_model=num_model):
-            result = ExperimentResult()
+        for condition in self.condition.iterator:
+            biomodel_num = condition[cn.SD_BIOMODEL_NUM]
+            result = smt.ExperimentResult(**condition)
+            model = mdl.Model.getBiomodel(biomodel_num)
             if model is None:
                 result[cn.SD_STATUS] = "Cannot create model."
             # Assign the qualifiers
             else:
-                # TODO
-                data_ts = self.getTimeseries()
+                observed_ts = self.getTimeseries(biomodel_num,
+                      condition[cn.SD_NOISE_MAG], condition[cn.SD_TS_INSTANCE])
                 try:
-                    new_dct = smt.SBMLFitter.evaluateBiomodelFit(cls,
-                          model_num, observed_ts,
+                    new_result = smt.SBMLFitter.evaluateBiomodelFit(
+                          biomodel_num, observed_ts,
                           range_min_frac=condition[cn.SD_RANGE_MIN_FRAC],
                           range_max_frac=condition[cn.SD_RANGE_MAX_FRAC],
-                          initial_value_frac=condition[cn.SD_INITIAL_VALUE_FRAC],
+                          initial_value_frac=condition[cn.SD_RANGE_INITIAL_FRAC],
                           method_names=condition[cn.SD_METHOD],
-                          max_fev=condition[cn.MAX_FEV],
+                          max_fev=condition[cn.SD_MAX_FEV],
                           )
-                    result.update(dct)
+                    result.update(new_result)
                 except (ValueError, RuntimeError) as exp:
                     result[cn.SD_STATUS] = str(exp)
-            # Accumulate results
-            results.append(dct)
+                # Accumulate results
+                results.append(result)
+            # Save the results
             df = pd.DataFrame(results)
-            self._writeMessage(model_num, dct[cn.SD_STATUS], is_only_report_success)
-            # Create entry for missing models
-            df.to_csv(out_path)
+            df.to_csv(self.out_path)
+            #
+            self._writeMessage(biomodel_num, result[cn.SD_STATUS],
+                  is_report=is_report)
         # Handle the missing models
         final_df = df.sort_values(cn.SD_BIOMODEL_NUM)
         final_df = final_df.set_index(cn.SD_BIOMODEL_NUM)
         final_df = final_df[final_df[cn.SD_STATUS] == "Success!"]
-        for column in final_df.columns:
-            if UNNAMED in column:
-                del final_df[column]
         final_df.to_csv(self.out_path)
+        return final_df
 
-    def getTimeseries(self):
+    @staticmethod
+    def getTimeseries(biomodel_num, noise_mag, ts_instance):
         """
         Obtains the timeseries for the model and replication instance.
+
+        Parameters
+        ----------
+        biomodel_num: int
+        ts_instance: int (index of synthetic time series for model)
 
         Returns
         -------
         Timeseries
         """
-        path = os.path.join(cn.DATA_DIR, str(self.condition[cn.SD_BIOMODEL_NUM]))
-        filename = "%d.csv" % self.condition[cn.TS_INSTANCE]
+        directory = "%d--%s" % (biomodel_num, str(noise_mag))
+        path = os.path.join(cn.DATA_DIR, directory)
+        filename = "%d.csv" % ts_instance
         path = os.path.join(path, filename)
-        return pd.read_csv(path)
+        df = pd.read_csv(path)
+        # TODO: fix data so this is no longer needed
+        if "miliseconds" in df.columns:
+            df = df.rename(columns={"miliseconds": cn.MILLISECONDS})
+        df = df.set_index(cn.MILLISECONDS)
+        return df
+
+    @classmethod
+    def readCsv(cls, path=None, condition=None, directory=cn.EXPERIMENT_DIR):
+        """
+        Reads the CSV file for a condition.
+
+        Parameters
+        ----------
+        path: str (explicit path to use)
+        condition: ExperimentCondition (used to infer path if no explicit path)
+        directory: str (contains file)
+        
+        Returns
+        -------
+        DataFrame
+            columns: cn.SD_ALL
+            index: int (biomodel number)
+        """
+        if path is None:
+            path = cls.makePath(condition, directory)
+        df = pd.read_csv(path)
+        df = df.set_index(cn.SD_BIOMODEL_NUM)
+        return df
+
+if __name__ == '__main__':
+    condition = smt.ExperimentCondition(biomodel_num=list(range(1, 11)),
+          ts_instance=[1,2])
+    runner = smt.ExperimentRunner(condition)
+    runner.run()

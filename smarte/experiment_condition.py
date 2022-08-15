@@ -7,6 +7,7 @@ as a dictionary where the keys are factors and their value is a level.
 
 import smarte.constants as cn
 from smarte.extended_dict import ExtendedDict
+from smarte.iterate_dict import iterateDict
 
 import pandas as pd
 import os
@@ -39,14 +40,17 @@ class ExperimentCondition(ExtendedDict):
         """
         super().__init__()
         self.kwargs = ExtendedDict({})  # Arguments passed
-        # TODO: Handle "*" values
-        # TODO: biomodel_num is a Factor?
         for key in cn.SD_CONDITIONS:
             self.kwargs[key] = eval(key)
             if eval(key) == cn.SD_CONDITION_VALUE_ALL:
                 self[key] = cn.SD_CONDITION_VALUE_ALL_DCT[key]
             else:
                 self[key] = eval(key)
+
+    @property
+    def iterator(self):
+        for dct in iterateDict(self):
+            yield ExperimentCondition(**dct)
 
     def __str__(self):
         return str(self.kwargs)

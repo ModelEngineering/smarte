@@ -3,6 +3,7 @@ from smarte.experiment_result import ExperimentResult
 from smarte.experiment_condition import ExperimentCondition
 import smarte.constants as cn
 
+import pandas as pd
 import unittest
 
 IGNORE_TEST = False
@@ -16,25 +17,29 @@ class TestExperimentResult(unittest.TestCase):
 
     def setUp(self):
         self.condition = ExperimentCondition()
-        self.result = ExperimentResult(self.condition)
+        self.result = ExperimentResult(**self.condition)
 
-    def testConstructor(self):
-        if IGNORE_TEST:
-            return
-        self.assertEqual(self.result[cn.SD_METHOD], METHOD)
-
-    def testStr(self):
+    def testGet(self):
         if IGNORE_TEST:
             return
         stg = str(self.result)
-        self.assertEqual(stg.count(KEY_VALUE_SEP), len(cn.SD_CONDITIONS))
-
-    def testGetResult(self):
-        if IGNORE_TEST:
-            return
-        stg = str(self.result)
-        result = self.result.getResult(stg)
+        result = self.result.get(stg)
         self.assertTrue(result.equals(self.result))
+
+    def testMakeAggregateResult(self):
+        if IGNORE_TEST:
+            return
+        result = self.result.makeAggregateResult()
+        for value in result.values():
+             self.assertEqual(len(value), 0)
+        #
+        dct = {k: [1] for k in cn.SD_ALL}
+        df = pd.DataFrame(dct, columns = cn.SD_ALL)
+        result = self.result.makeAggregateResult(pd.DataFrame(df))
+        for column in cn.SD_ALL:
+             self.assertEqual(len(df[column]), 1)
+  
+        
         
 
 if __name__ == '__main__':

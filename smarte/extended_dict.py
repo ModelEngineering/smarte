@@ -1,5 +1,6 @@
 """Extensions to Dictionary type"""
 
+
 # Separators
 KEY_VALUE_SEP = "__"  # Separates key-value pairs
 VALUE_SEP = "--" # Separates the key from its value and values from one another
