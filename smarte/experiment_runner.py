@@ -27,10 +27,13 @@ class ExperimentRunner(object):
         self.condition = condition
         self.directory = directory
         self.out_path = self.makePath(self.condition, self.directory)
+        self.factors = self.condition.calcMultivaluedFactors()
 
-    def _writeMessage(self, model_num, instance, msg, is_report):
+    def _writeMessage(self, condition, status, is_report):
         if is_report:
-            print("***Model %d, instance %d: %s" % (model_num, instance, msg))
+            stgs = ["%s=%s" % (k, str(condition[k])) for k in self.factors]
+            stg = ", ".join(stgs)
+            print("***%s: %s" % (stg, status))
 
     @staticmethod
     def makePath(condition, directory=cn.EXPERIMENT_DIR):
@@ -104,8 +107,7 @@ class ExperimentRunner(object):
             # Save the results
             df = self.writeResults(results)
             #
-            self._writeMessage(biomodel_num, result[cn.SD_TS_INSTANCE],
-                  result[cn.SD_STATUS], is_report=is_report)
+            self._writeMessage(condition, result[cn.SD_STATUS], is_report=is_report)
         # Handle the missing models
         return df
 
@@ -128,7 +130,7 @@ class ExperimentRunner(object):
         filename = "%d.csv" % ts_instance
         path = os.path.join(path, filename)
         df = pd.read_csv(path)
-        # TODO: fix data so this is no longer needed
+        # TODO:
         if "miliseconds" in df.columns:
             df = df.rename(columns={"miliseconds": cn.MILLISECONDS})
         df = df.set_index(cn.MILLISECONDS)

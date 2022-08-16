@@ -48,5 +48,5 @@ SD_ALL.extend(SD_METRICS)
 SD_CONDITION_VALUE_ALL = "all"
 SD_CONDITION_VALUE_ALL_DCT = {
       SD_BIOMODEL_NUM: list(range(1, 1200)),
-      SD_TS_INSTANCE:  list(range(1, 4)),
+      SD_TS_INSTANCE:  list(range(1, 6)),
       }

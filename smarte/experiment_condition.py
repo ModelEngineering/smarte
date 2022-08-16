@@ -82,3 +82,22 @@ class ExperimentCondition(ExtendedDict):
             condition = ExperimentCondition(**dct)
             conditions.append(condition)
         return conditions
+
+    def calcMultivaluedFactors(self):
+        """
+        Finds the factors for which there are multiple values.
+        
+        Returns
+        -------
+        list-str
+        """
+        result = []
+        for key, value in self.items():
+            if isinstance(value, str):
+                if value == cn.SD_CONDITION_VALUE_ALL:
+                    result.append(key)
+                continue
+            if isinstance(value, list):
+                result.append(key)
+        return result
+            

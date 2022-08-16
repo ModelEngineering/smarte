@@ -51,6 +51,19 @@ class TestExperimentCondition(unittest.TestCase):
         conditions = ExperimentCondition.get(df)
         trues = [isinstance(c, ExperimentCondition) for c in conditions]
         self.assertTrue(all(trues))
+
+    def testCalcMultivaluedFactors(self):
+        if IGNORE_TEST:
+            return
+        def test(size, **kwargs):
+            condition = ExperimentCondition(**kwargs)
+            factors = condition.calcMultivaluedFactors()
+            self.assertEqual(len(factors), size)
+        #
+        test(2)
+        test(0, biomodel_num=1, ts_instance=1)
+        test(1, biomodel_num=1)
+        test(3, range_min_frac=[1, 2])
         
 
 if __name__ == '__main__':
