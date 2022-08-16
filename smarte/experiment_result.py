@@ -42,6 +42,8 @@ class ExperimentResult(ExtendedDict):
         Parameters
         ----------
         df: DataFrame
+            columns: cn.SD_ALL (except BIOMODEL_NUM)
+            index: cn.BIOMODEL_NUM
 
         Returns
         -------
@@ -50,7 +52,8 @@ class ExperimentResult(ExtendedDict):
         if df is None:
             result = cls(**{k: [] for k in cn.SD_ALL})
         else:
-            result = cls()
+            dct = {df.index.name: [int(v) for v in df.index]}
+            result = cls(**dct)
             for column in df.columns:
                 if not UNNAMED in column:
                     result[column] = list(df[column].values)

@@ -13,6 +13,7 @@ F_HIGHER = 4.0  # Upper end of range for value search
 F_INITIAL = F_LOWER  # Starting point for search
 OUT_FILE = os.path.join(cn.PROJECT_DIR, "biomodels_statistics.csv")
 NUM_REPLICATION = 3
+UNNAMED = "Unnamed:"
 
 
 class ExperimentRunner(object):
@@ -27,9 +28,9 @@ class ExperimentRunner(object):
         self.directory = directory
         self.out_path = self.makePath(self.condition, self.directory)
 
-    def _writeMessage(self, model_num, msg, is_report):
+    def _writeMessage(self, model_num, instance, msg, is_report):
         if is_report:
-            print("\n***Model %d: %s" % (model_num, msg))
+            print("***Model %d, instance %d: %s" % (model_num, instance, msg))
 
     @staticmethod
     def makePath(condition, directory=cn.EXPERIMENT_DIR):
@@ -66,9 +67,9 @@ class ExperimentRunner(object):
         """
         # Handle restart
         if os.path.isfile(self.out_path) and is_recover:
-            df = ExperimentResult.readCsv(self.out_path)
+            df = self.readCsv(self.out_path)
             results = smt.ExperimentResult.makeAggregateResult(df)
-            conditions = smt.ExperimentCondition.get(results)
+            conditions = smt.ExperimentCondition.get(df)
             condition_strs = [str(c) for c in conditions]
         else:
             results = smt.ExperimentResult.makeAggregateResult()
@@ -101,17 +102,12 @@ class ExperimentRunner(object):
                 # Accumulate results
                 results.append(result)
             # Save the results
-            df = pd.DataFrame(results)
-            df.to_csv(self.out_path)
+            df = self.writeResults(results)
             #
-            self._writeMessage(biomodel_num, result[cn.SD_STATUS],
-                  is_report=is_report)
+            self._writeMessage(biomodel_num, result[cn.SD_TS_INSTANCE],
+                  result[cn.SD_STATUS], is_report=is_report)
         # Handle the missing models
-        final_df = df.sort_values(cn.SD_BIOMODEL_NUM)
-        final_df = final_df.set_index(cn.SD_BIOMODEL_NUM)
-        final_df = final_df[final_df[cn.SD_STATUS] == "Success!"]
-        final_df.to_csv(self.out_path)
-        return final_df
+        return df
 
     @staticmethod
     def getTimeseries(biomodel_num, noise_mag, ts_instance):
@@ -157,9 +153,31 @@ class ExperimentRunner(object):
         """
         if path is None:
             path = cls.makePath(condition, directory)
-        df = pd.read_csv(path)
-        df = df.set_index(cn.SD_BIOMODEL_NUM)
+        df = pd.read_csv(path, index_col=cn.SD_BIOMODEL_NUM)
+        for column in df.columns:
+            if UNNAMED in column:
+                del df[column]
         return df
+
+    def writeResults(self, results, path=None):
+        """
+        Writes the results to the designated file.
+
+        Parameters
+        ----------
+        results: list-ExperimentResult
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+        if path is None:
+            path = self.out_path
+        df = pd.DataFrame(results)
+        final_df = df.sort_values(cn.SD_BIOMODEL_NUM)
+        final_df = final_df.set_index(cn.SD_BIOMODEL_NUM)
+        final_df.to_csv(path, index=True)
+        return final_df
 
 if __name__ == '__main__':
     a_condition = smt.ExperimentCondition(biomodel_num="all",

@@ -48,5 +48,5 @@ def main(noise_mag=0, start_num=1, num_model=1, num_replica=1):
     
 
 if __name__ == '__main__':
-    num = main(num_model=1200, noise_mag=0.1, start_num=1, num_replica=3)
+    num = main(num_model=1200, noise_mag=0.1, start_num=1, num_replica=5)
     print("***Added %d CSV files" % num)

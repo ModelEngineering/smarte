@@ -34,10 +34,12 @@ class TestExperimentResult(unittest.TestCase):
              self.assertEqual(len(value), 0)
         #
         dct = {k: [1] for k in cn.SD_ALL}
-        df = pd.DataFrame(dct, columns = cn.SD_ALL)
-        result = self.result.makeAggregateResult(pd.DataFrame(df))
+        df = pd.DataFrame(dct, columns=cn.SD_ALL)
+        df = df.set_index(cn.SD_BIOMODEL_NUM)
+        result = self.result.makeAggregateResult(df=pd.DataFrame(df))
         for column in cn.SD_ALL:
-             self.assertEqual(len(df[column]), 1)
+             if column != cn.SD_BIOMODEL_NUM:
+                 self.assertEqual(len(df[column]), 1)
         
 
 if __name__ == '__main__':

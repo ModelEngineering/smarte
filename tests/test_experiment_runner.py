@@ -19,6 +19,7 @@ CONDITION = smt.ExperimentCondition(biomodel_num=list(range(1, NUM_MODEL + 1)),
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 REMOVE_FILES = []
 TEST_FILE = os.path.join(TEST_DIR, "test_experiment_runner.csv")        
+TEST_FILE1 = os.path.join(TEST_DIR, "test_experiment_runner1.csv")        
         
 
 #############################
@@ -75,6 +76,31 @@ class TestExperimentRunner(unittest.TestCase):
             return
         df = smt.ExperimentRunner.readCsv(path=TEST_FILE)
         self.assertGreater(len(df), 0)
+
+    def makeResults(self):
+        self.init()
+        df = self.runner.run(is_report=IGNORE_TEST, is_recover=False)
+        results = []
+        for idx, row in df.iterrows():
+            dct= row.to_dict()
+            dct[cn.SD_BIOMODEL_NUM] = idx
+            result = smt.ExperimentResult(**dct)
+            results.append(result)
+        return results
+
+    def testWriteResults(self):
+        if IGNORE_TEST:
+            return
+        results = self.makeResults()
+        df = self.runner.writeResults(results, path=TEST_FILE1)
+        new_df = self.runner.readCsv(path=TEST_FILE1)
+        columns = list(df.columns)
+        columns.remove(cn.SD_METHOD)
+        columns.remove(cn.SD_STATUS)
+        dff = df[columns] - new_df[columns]
+        self.assertTrue(np.isclose(dff.sum().sum(), 0))
+        os.remove(TEST_FILE1)
+        
 
 
 if __name__ == '__main__':

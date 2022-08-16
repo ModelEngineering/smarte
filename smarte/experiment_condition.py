@@ -74,7 +74,9 @@ class ExperimentCondition(ExtendedDict):
         list-ExperimentCondition
         """
         conditions = []
-        condition_df = df[cn.SD_CONDITIONS].drop_duplicates(ignore_index=True)
+        condition_df = df.reset_index()
+        condition_df = condition_df[cn.SD_CONDITIONS]
+        condition_df = condition_df.drop_duplicates(ignore_index=False)
         for _, row in condition_df.iterrows():
             dct = {k: row[k] for k in cn.SD_CONDITIONS}
             condition = ExperimentCondition(**dct)
