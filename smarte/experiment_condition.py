@@ -9,6 +9,8 @@ import smarte.constants as cn
 from smarte.extended_dict import ExtendedDict
 from smarte.iterate_dict import iterateDict
 
+import pandas as pd
+
 
 class ExperimentCondition(ExtendedDict):
 
@@ -61,3 +63,20 @@ class ExperimentCondition(ExtendedDict):
 
     def __str__(self):
         return str(self.kwargs)
+
+    @classmethod
+    def get(cls, df):
+        """
+        Extracts conditions from a dataframe
+
+        Returns
+        -------
+        list-ExperimentCondition
+        """
+        conditions = []
+        condition_df = df[cn.SD_CONDITIONS].drop_duplicates(ignore_index=True)
+        for _, row in condition_df.iterrows():
+            dct = {k: row[k] for k in cn.SD_CONDITIONS}
+            condition = ExperimentCondition(**dct)
+            conditions.append(condition)
+        return conditions

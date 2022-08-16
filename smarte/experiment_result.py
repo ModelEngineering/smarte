@@ -1,8 +1,10 @@
 """Container for the results of experiments."""
 
 import smarte.constants as cn
+from smarte.experiment_condition import ExperimentCondition
 from smarte.extended_dict import ExtendedDict
 
+import pandas as pd
 
 UNNAMED = "Unnamed:"
 

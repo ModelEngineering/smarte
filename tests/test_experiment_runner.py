@@ -17,8 +17,8 @@ NUM_MODEL = 10
 CONDITION = smt.ExperimentCondition(biomodel_num=list(range(1, NUM_MODEL + 1)),
       ts_instance=TS_INSTANCE, noise_mag=0.1)
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-CSV_PATH = smt.ExperimentRunner.makePath(CONDITION, directory=TEST_DIR)
-REMOVE_FILES = [CSV_PATH]
+REMOVE_FILES = []
+TEST_FILE = os.path.join(TEST_DIR, "test_experiment_runner.csv")        
         
 
 #############################
@@ -62,13 +62,19 @@ class TestExperimentRunner(unittest.TestCase):
             ts_instance = -1
             _ = smt.ExperimentRunner.getTimeseries(biomodel_num, noise_mag, ts_instance)
 
-    def testRun_ReadCsv(self):
+    def testRun(self):
         if IGNORE_TEST:
             return
         self.init()
         df = self.runner.run(is_report=IGNORE_TEST, is_recover=False)
         new_df = smt.ExperimentRunner.readCsv(condition=CONDITION, directory=TEST_DIR)
         self.assertEqual(len(df), len(new_df))
+
+    def testReadCsv(self):
+        if IGNORE_TEST:
+            return
+        df = smt.ExperimentRunner.readCsv(path=TEST_FILE)
+        self.assertGreater(len(df), 0)
 
 
 if __name__ == '__main__':

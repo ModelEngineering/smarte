@@ -66,12 +66,17 @@ class ExperimentRunner(object):
         """
         # Handle restart
         if os.path.isfile(self.out_path) and is_recover:
-            df = pd.read_csv(self.out_path)
+            df = ExperimentResult.readCsv(self.out_path)
             results = smt.ExperimentResult.makeAggregateResult(df)
+            conditions = smt.ExperimentCondition.get(results)
+            condition_strs = [str(c) for c in conditions]
         else:
             results = smt.ExperimentResult.makeAggregateResult()
+            condition_strs = []
         # Iterate across the models
         for condition in self.condition.iterator:
+            if str(condition) in condition_strs:
+                continue
             biomodel_num = condition[cn.SD_BIOMODEL_NUM]
             result = smt.ExperimentResult(**condition)
             model = mdl.Model.getBiomodel(biomodel_num)
@@ -136,7 +141,7 @@ class ExperimentRunner(object):
     @classmethod
     def readCsv(cls, path=None, condition=None, directory=cn.EXPERIMENT_DIR):
         """
-        Reads the CSV file for a condition.
+        Creates a DataFrame from a CSV file structured as ExperimentResult.
 
         Parameters
         ----------
@@ -157,7 +162,7 @@ class ExperimentRunner(object):
         return df
 
 if __name__ == '__main__':
-    a_condition = smt.ExperimentCondition(biomodel_num=list(range(1, 11)),
-          ts_instance=[1,2])
+    a_condition = smt.ExperimentCondition(biomodel_num="all",
+          ts_instance="all", noise_mag=0.1)
     runner = smt.ExperimentRunner(a_condition)
     runner.run()

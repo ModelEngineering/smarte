@@ -3,12 +3,12 @@ from smarte.experiment_result import ExperimentResult
 from smarte.experiment_condition import ExperimentCondition
 import smarte.constants as cn
 
+import os
 import pandas as pd
 import unittest
 
 IGNORE_TEST = False
 IS_PLOT = False
-        
 
 #############################
 # Tests
@@ -38,8 +38,6 @@ class TestExperimentResult(unittest.TestCase):
         result = self.result.makeAggregateResult(pd.DataFrame(df))
         for column in cn.SD_ALL:
              self.assertEqual(len(df[column]), 1)
-  
-        
         
 
 if __name__ == '__main__':
