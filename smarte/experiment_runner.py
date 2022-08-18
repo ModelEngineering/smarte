@@ -62,7 +62,7 @@ class ExperimentRunner(object):
         filename = "%s.csv" % str(workunit)
         return os.path.join(directory, filename)
 
-    def run(self, is_recover=True, is_report=True):
+    def runWorkunit(self, is_recover=True, is_report=True):
         """
         Runs experiment for all of BioModels. Has recovery capability
         where continues with an existing CSV file.
@@ -82,7 +82,7 @@ class ExperimentRunner(object):
         if os.path.isfile(self.out_path) and is_recover:
             df = self.readCsv(self.out_path)
             results = smt.ExperimentResult.makeAggregateResult(df)
-            conditions = smt.ExperimentCondition.get(df)
+            conditions = smt.ExperimentCondition.getFromDF(df)
             condition_strs = [str(c) for c in conditions]
         else:
             results = smt.ExperimentResult.makeAggregateResult()
@@ -202,10 +202,24 @@ class ExperimentRunner(object):
         final_df.to_csv(path, index=True)
         return final_df
 
+    @classmethod
+    def runWorkunits(cls, path):
+        """
+        Runs workunits in parallel.
+
+        Parameters
+        ----------
+        path: str (path to file of workunits)
+        
+        Returns
+        -------
+        """
+   
+
 if __name__ == '__main__':
     #a_workunit = smt.Workunit(biomodel_num="all", ts_instance="all", noise_mag=0.1)
     #dct = dict(biomodel_num=list(range(1, 5)), ts_instance=1, noise_mag=0.1)
     exclude_factor_dct = dict(biomodel_num=BIOMODEL_EXCLUDES)
     a_workunit = smt.Workunit(noise_mag=0.1)
     runner = smt.ExperimentRunner(a_workunit, exclude_factor_dct=exclude_factor_dct)
-    runner.run()
+    runner.runWorkunit()

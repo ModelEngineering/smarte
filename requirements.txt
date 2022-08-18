@@ -7,7 +7,6 @@ coverage
 dask[complete]
 dask-cloudprovider[azure]
 dask-cloudprovider[azure]
-adlfs lz4 blosc
 dask
 distributed
 docstring_expander

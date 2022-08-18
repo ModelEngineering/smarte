@@ -37,11 +37,11 @@ class TestExperimentCondition(unittest.TestCase):
         stg = str(condition)
         self.assertEqual(stg.count(VALUE_SEP), len(cn.SD_CONDITIONS)+1)
 
-    def testGet(self):
+    def testGetFromDF(self):
         if IGNORE_TEST:
             return
         df = pd.read_csv(TEST_FILE)
-        conditions = ExperimentCondition.get(df)
+        conditions = ExperimentCondition.getFromDF(df)
         trues = [isinstance(c, ExperimentCondition) for c in conditions]
         self.assertTrue(all(trues))
         

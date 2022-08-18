@@ -77,7 +77,7 @@ class ExtendedDict(dict):
         return str(self) == str(other)
 
     @classmethod
-    def get(cls, stg):
+    def getFromStr(cls, stg):
         """
         Decodes the string as a representation of the dictionary.
 

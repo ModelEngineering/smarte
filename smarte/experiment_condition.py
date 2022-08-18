@@ -60,7 +60,7 @@ class ExperimentCondition(ExtendedDict):
         return str(self.kwargs)
 
     @classmethod
-    def get(cls, df):
+    def getFromDF(cls, df):
         """
         Extracts conditions from a dataframe
 

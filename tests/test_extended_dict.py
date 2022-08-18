@@ -57,12 +57,12 @@ class TestExtendedDict(unittest.TestCase):
         if IGNORE_TEST:
             return
         stg = str(self.dict)
-        dct = self.dict.get(stg)
+        dct = self.dict.getFromStr(stg)
         self.assertTrue(dct.equals(self.dict))
         #
         dct = ExtendedDict({"a": [100, 200.2], "b": "testing", "c": 1.04})
         stg = str(dct)
-        new_dct = ExtendedDict.get(stg)
+        new_dct = ExtendedDict.getFromStr(stg)
         self.assertTrue(dct.equals(new_dct))
 
 

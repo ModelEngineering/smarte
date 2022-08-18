@@ -23,7 +23,7 @@ class TestExperimentResult(unittest.TestCase):
         if IGNORE_TEST:
             return
         stg = str(self.result)
-        result = self.result.get(stg)
+        result = self.result.getFromStr(stg)
         self.assertTrue(result.equals(self.result))
 
     def testMakeAggregateResult(self):

@@ -63,11 +63,11 @@ class TestExperimentRunner(unittest.TestCase):
             ts_instance = -1
             _ = smt.ExperimentRunner.getTimeseries(biomodel_num, noise_mag, ts_instance)
 
-    def testRun(self):
+    def testRunWorkunit(self):
         if IGNORE_TEST:
             return
         self.init()
-        df = self.runner.run(is_report=IGNORE_TEST, is_recover=False)
+        df = self.runner.runWorkunit(is_report=IGNORE_TEST, is_recover=False)
         new_df = smt.ExperimentRunner.readCsv(workunit=WORKUNIT, directory=TEST_DIR)
         self.assertEqual(len(df), len(new_df))
 
@@ -79,7 +79,7 @@ class TestExperimentRunner(unittest.TestCase):
 
     def makeResults(self):
         self.init()
-        df = self.runner.run(is_report=IGNORE_TEST, is_recover=False)
+        df = self.runner.runWorkunit(is_report=IGNORE_TEST, is_recover=False)
         results = []
         for idx, row in df.iterrows():
             dct= row.to_dict()
