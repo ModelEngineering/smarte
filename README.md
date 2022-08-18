@@ -1,5 +1,13 @@
 # SMART ESTIMATION OF PARAMETERS IN REACTION NETWORKS (SMARTE)
 
+# Concepts
+
+* A **factor** is something that is changed in an experiment, such as start concentration of a species and algorithm for parameter estimation.
+* A **level** for a factor is a value that is assigned the factor for an experiment.
+* **Factor space** has dimensions of factors, and the coordinates for a factor are its levels.
+* A **condition** is a collection of pairs factor and level.
+* A **work unit** is a collection of conditions. Typically, conditions are chosen as a hypercube in factor space.
+
 # Repository Structure
 * `docs` - sphinx documentation
 * `tools` - standalone scripts

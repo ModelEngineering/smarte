@@ -14,20 +14,30 @@ F_INITIAL = F_LOWER  # Starting point for search
 OUT_FILE = os.path.join(cn.PROJECT_DIR, "biomodels_statistics.csv")
 NUM_REPLICATION = 3
 UNNAMED = "Unnamed:"
+BIOMODEL_EXCLUDE_PATH = os.path.join(cn.DATA_DIR, "biomodels_exclude.csv")
+BIOMODEL_EXCLUDE_DF = pd.read_csv(BIOMODEL_EXCLUDE_PATH)
+BIOMODEL_EXCLUDES = list(BIOMODEL_EXCLUDE_DF[cn.SD_BIOMODEL_NUM].values)
 
 
 class ExperimentRunner(object):
 
-    def __init__(self, condition, directory=cn.EXPERIMENT_DIR):
+    def __init__(self, workunit, directory=cn.EXPERIMENT_DIR, exclude_factor_dct=None):
         """
         Parameters
         ----------
-        condition: ExperimentCondition
+        workunit: Workunit
+        directory: str (directory for file output)
+        exclude_factor_dct: dict (any condition with a factor value is excluded)
+             key: factor
+             value: list-levels
         """
-        self.condition = condition
+        self.workunit = workunit
+        self.exclude_factor_dct = exclude_factor_dct
+        if self.exclude_factor_dct is None:
+            self.exclude_factor_dct = {}
         self.directory = directory
-        self.out_path = self.makePath(self.condition, self.directory)
-        self.factors = self.condition.calcMultivaluedFactors()
+        self.out_path = self.makePath(self.workunit, self.directory)
+        self.factors = self.workunit.calcMultivaluedFactors()
 
     def _writeMessage(self, condition, status, is_report):
         if is_report:
@@ -36,20 +46,20 @@ class ExperimentRunner(object):
             print("***%s: %s" % (stg, status))
 
     @staticmethod
-    def makePath(condition, directory=cn.EXPERIMENT_DIR):
+    def makePath(workunit, directory=cn.EXPERIMENT_DIR):
         """
-        Consturcts a path to the CSV file for the conditions used in this experiment.
+        Consturcts a path to the CSV file for the workunit used in this experiment.
 
         Parameters
         ----------
-        condition: ExperimentCondition
+        workunit: Workunit
         directory: str
 
         Returns
         -------
         str
         """
-        filename = "%s.csv" % str(condition)
+        filename = "%s.csv" % str(workunit)
         return os.path.join(directory, filename)
 
     def run(self, is_recover=True, is_report=True):
@@ -78,9 +88,20 @@ class ExperimentRunner(object):
             results = smt.ExperimentResult.makeAggregateResult()
             condition_strs = []
         # Iterate across the models
-        for condition in self.condition.iterator:
+        for condition in self.workunit.iterator:
+            # See if condition is to be processed
+            # Already processed?
             if str(condition) in condition_strs:
                 continue
+            # Excluded?
+            is_skip = False
+            for factor in self.exclude_factor_dct.keys():
+                if condition[factor] in self.exclude_factor_dct[factor]:
+                    is_skip = True
+                    break
+            if is_skip:
+                continue
+            # Process the condition
             biomodel_num = condition[cn.SD_BIOMODEL_NUM]
             result = smt.ExperimentResult(**condition)
             model = mdl.Model.getBiomodel(biomodel_num)
@@ -137,14 +158,14 @@ class ExperimentRunner(object):
         return df
 
     @classmethod
-    def readCsv(cls, path=None, condition=None, directory=cn.EXPERIMENT_DIR):
+    def readCsv(cls, path=None, workunit=None, directory=cn.EXPERIMENT_DIR):
         """
         Creates a DataFrame from a CSV file structured as ExperimentResult.
 
         Parameters
         ----------
         path: str (explicit path to use)
-        condition: ExperimentCondition (used to infer path if no explicit path)
+        workunit: Workunit (used to infer path if no explicit path)
         directory: str (contains file)
 
         Returns
@@ -154,7 +175,7 @@ class ExperimentRunner(object):
             index: int (biomodel number)
         """
         if path is None:
-            path = cls.makePath(condition, directory)
+            path = cls.makePath(workunit, directory)
         df = pd.read_csv(path, index_col=cn.SD_BIOMODEL_NUM)
         for column in df.columns:
             if UNNAMED in column:
@@ -182,7 +203,9 @@ class ExperimentRunner(object):
         return final_df
 
 if __name__ == '__main__':
-    a_condition = smt.ExperimentCondition(biomodel_num="all",
-          ts_instance="all", noise_mag=0.1)
-    runner = smt.ExperimentRunner(a_condition)
+    #a_workunit = smt.Workunit(biomodel_num="all", ts_instance="all", noise_mag=0.1)
+    #dct = dict(biomodel_num=list(range(1, 5)), ts_instance=1, noise_mag=0.1)
+    exclude_factor_dct = dict(biomodel_num=BIOMODEL_EXCLUDES)
+    a_workunit = smt.Workunit(noise_mag=0.1)
+    runner = smt.ExperimentRunner(a_workunit, exclude_factor_dct=exclude_factor_dct)
     runner.run()

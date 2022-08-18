@@ -4,6 +4,12 @@ azure-batch
 azure-storage-blob
 azure-storage-file-share
 coverage
+dask[complete]
+dask-cloudprovider[azure]
+dask-cloudprovider[azure]
+adlfs lz4 blosc
+dask
+distributed
 docstring_expander
 jupyterlab
 dask-kubernetes

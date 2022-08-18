@@ -14,7 +14,7 @@ IGNORE_TEST = False
 IS_PLOT = False
 TS_INSTANCE = 1
 NUM_MODEL = 10
-CONDITION = smt.ExperimentCondition(biomodel_num=list(range(1, NUM_MODEL + 1)),
+WORKUNIT = smt.Workunit(biomodel_num=list(range(1, NUM_MODEL + 1)),
       ts_instance=TS_INSTANCE, noise_mag=0.1)
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 REMOVE_FILES = []
@@ -29,7 +29,7 @@ class TestExperimentRunner(unittest.TestCase):
 
     def init(self):
         self.remove()
-        self.runner = smt.ExperimentRunner(CONDITION, directory=TEST_DIR)
+        self.runner = smt.ExperimentRunner(WORKUNIT, directory=TEST_DIR)
 
     def tearDown(self):
         self.remove()
@@ -42,7 +42,7 @@ class TestExperimentRunner(unittest.TestCase):
     def testMakePath(self):
         if IGNORE_TEST:
             return
-        path = smt.ExperimentRunner.makePath(CONDITION, TEST_DIR)
+        path = smt.ExperimentRunner.makePath(WORKUNIT, TEST_DIR)
         self.assertTrue(str(TS_INSTANCE) + ".csv" in path)
 
     def testConstructor(self):
@@ -68,7 +68,7 @@ class TestExperimentRunner(unittest.TestCase):
             return
         self.init()
         df = self.runner.run(is_report=IGNORE_TEST, is_recover=False)
-        new_df = smt.ExperimentRunner.readCsv(condition=CONDITION, directory=TEST_DIR)
+        new_df = smt.ExperimentRunner.readCsv(workunit=WORKUNIT, directory=TEST_DIR)
         self.assertEqual(len(df), len(new_df))
 
     def testReadCsv(self):
