@@ -21,6 +21,14 @@ BIOMODEL_EXCLUDE_PATH = os.path.join(cn.DATA_DIR, "biomodels_exclude.csv")
 BIOMODEL_EXCLUDE_DF = pd.read_csv(BIOMODEL_EXCLUDE_PATH)
 BIOMODEL_EXCLUDES = list(BIOMODEL_EXCLUDE_DF[cn.SD_BIOMODEL_NUM].values)
 WORKUNIT_FILE = os.path.join(cn.EXPERIMENT_DIR, "workunits.txt")
+DUMMY_RESULT = {"a": 0.5, "b": 0.5}
+
+
+def wrapper(workunit, exclude_factor_dct):
+    runner = smt.ExperimentRunner(workunit,
+          exclude_factor_dct=exclude_factor_dct)
+    df = runner.runWorkunit()
+    return df
 
 
 class ExperimentRunner(object):
@@ -218,14 +226,10 @@ class ExperimentRunner(object):
         Returns
         -------
         """
-        def wrapper(workunit):
-            runner = smt.ExperimentRunner(workunit,
-                  exclude_factor_dct=exclude_factor_dct)
-            df = runner.runWorkunit()
-            return df
         # Create the local cluster
+        client = Client(n_workers=4)
+        lazy_results = []
         try:
-            cluster = LocalCluster(n_workers=3, threads_per_worker=1)
             #
             exclude_factor_dct = dict(biomodel_num=BIOMODEL_EXCLUDES)
             with open(path, "r") as fd:
@@ -237,14 +241,15 @@ class ExperimentRunner(object):
                     workunit = smt.Workunit.getFromStr(line)
                 except:
                     raise ValueError("Invalid workunit string: %s" % line)
-                lazy_result = dask.delayed(wrapper)(workunit)
+                lazy_result = dask.delayed(wrapper)(workunit, exclude_factor_dct)
                 lazy_results.append(lazy_result)
             #
-            final_result = dask.persist(*lazy_results)  # trigger computation
         except Exception as exp:
             print(exp)
             num_result = 0
-        cluster.close()
+        final_result = dask.compute(*lazy_results)  # trigger computation
+        #final_result = dask.compute(lazy_results[1])  # trigger computation
+        client.close()
         return final_result
    
 
@@ -252,6 +257,5 @@ if __name__ == '__main__':
     if True:
         exclude_factor_dct = dict(biomodel_num=BIOMODEL_EXCLUDES)
         a_workunit = smt.Workunit(noise_mag=0.1)
-        import pdb; pdb.set_trace()
         runner = smt.ExperimentRunner(a_workunit, exclude_factor_dct=exclude_factor_dct)
         runner.runWorkunit()
