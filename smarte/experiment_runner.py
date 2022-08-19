@@ -5,6 +5,9 @@ import smarte as smt
 from smarte import constants as cn
 import SBMLModel as mdl
 
+import dask
+from dask.distributed import LocalCluster, Client
+import numpy as np
 import os
 import pandas as pd
 
@@ -17,6 +20,7 @@ UNNAMED = "Unnamed:"
 BIOMODEL_EXCLUDE_PATH = os.path.join(cn.DATA_DIR, "biomodels_exclude.csv")
 BIOMODEL_EXCLUDE_DF = pd.read_csv(BIOMODEL_EXCLUDE_PATH)
 BIOMODEL_EXCLUDES = list(BIOMODEL_EXCLUDE_DF[cn.SD_BIOMODEL_NUM].values)
+WORKUNIT_FILE = os.path.join(cn.EXPERIMENT_DIR, "workunits.txt")
 
 
 class ExperimentRunner(object):
@@ -203,23 +207,51 @@ class ExperimentRunner(object):
         return final_df
 
     @classmethod
-    def runWorkunits(cls, path):
+    def runWorkunits(cls, path=WORKUNIT_FILE):
         """
         Runs workunits in parallel.
 
         Parameters
         ----------
-        path: str (path to file of workunits)
+        path: str (path to file of workunits in string representation)
         
         Returns
         -------
         """
+        def wrapper(workunit):
+            runner = smt.ExperimentRunner(workunit,
+                  exclude_factor_dct=exclude_factor_dct)
+            df = runner.runWorkunit()
+            return df
+        # Create the local cluster
+        try:
+            cluster = LocalCluster(n_workers=3, threads_per_worker=1)
+            #
+            exclude_factor_dct = dict(biomodel_num=BIOMODEL_EXCLUDES)
+            with open(path, "r") as fd:
+                lines = fd.readlines()
+            #
+            lazy_results = []
+            for line in lines:
+                try:
+                    workunit = smt.Workunit.getFromStr(line)
+                except:
+                    raise ValueError("Invalid workunit string: %s" % line)
+                lazy_result = dask.delayed(wrapper)(workunit)
+                lazy_results.append(lazy_result)
+            #
+            final_result = dask.persist(*lazy_results)  # trigger computation
+        except Exception as exp:
+            print(exp)
+            num_result = 0
+        cluster.close()
+        return final_result
    
 
 if __name__ == '__main__':
-    #a_workunit = smt.Workunit(biomodel_num="all", ts_instance="all", noise_mag=0.1)
-    #dct = dict(biomodel_num=list(range(1, 5)), ts_instance=1, noise_mag=0.1)
-    exclude_factor_dct = dict(biomodel_num=BIOMODEL_EXCLUDES)
-    a_workunit = smt.Workunit(noise_mag=0.1)
-    runner = smt.ExperimentRunner(a_workunit, exclude_factor_dct=exclude_factor_dct)
-    runner.runWorkunit()
+    if True:
+        exclude_factor_dct = dict(biomodel_num=BIOMODEL_EXCLUDES)
+        a_workunit = smt.Workunit(noise_mag=0.1)
+        import pdb; pdb.set_trace()
+        runner = smt.ExperimentRunner(a_workunit, exclude_factor_dct=exclude_factor_dct)
+        runner.runWorkunit()

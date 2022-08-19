@@ -105,10 +105,10 @@ class ExtendedDict(dict):
             if str(value) in ["True", "False"]:
                 new_value = eval(value)
             # int
-            elif isinstance(value, int):
+            elif isinstance(eval(value), int):
                 new_value = int(value)
             # float
-            elif isinstance(value, float):
+            elif isinstance(eval(value), float):
                 new_value = float(value)
             # str
             else:
@@ -129,7 +129,10 @@ class ExtendedDict(dict):
                 values = parts[1:]
             # Decode the types
             if isinstance(values, str):
-                dct[key] = values
+                try:
+                    dct[key] = convert(values)
+                except NameError:
+                    dct[key] = values
             elif isinstance(values, list):
                 dct[key] = [convert(v) for v in values]
             else:
