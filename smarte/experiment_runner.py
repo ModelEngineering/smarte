@@ -20,7 +20,6 @@ UNNAMED = "Unnamed:"
 BIOMODEL_EXCLUDE_PATH = os.path.join(cn.DATA_DIR, "biomodels_exclude.csv")
 BIOMODEL_EXCLUDE_DF = pd.read_csv(BIOMODEL_EXCLUDE_PATH)
 BIOMODEL_EXCLUDES = list(BIOMODEL_EXCLUDE_DF[cn.SD_BIOMODEL_NUM].values)
-WORKUNIT_FILE = os.path.join(cn.EXPERIMENT_DIR, "workunits.txt")
 DUMMY_RESULT = {"a": 0.5, "b": 0.5}
 
 
@@ -218,7 +217,7 @@ class ExperimentRunner(object):
         return final_df
 
     @classmethod
-    def runWorkunits(cls, num_worker=4, path=WORKUNIT_FILE):
+    def runWorkunits(cls, num_worker=4, path=cn.WORKUNITS_FILE):
         """
         Runs workunits in parallel.
 

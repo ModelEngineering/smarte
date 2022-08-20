@@ -9,6 +9,7 @@ MILLISECONDS = "milliseconds"
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXPERIMENT_DIR = os.path.join(PROJECT_DIR, "experiments")
 DATA_DIR = os.path.join(PROJECT_DIR, "data")
+WORKUNITS_FILE = os.path.join(EXPERIMENT_DIR, "workunits.txt")
 # Keys in statistics dictionary
 SD_AVG_TIME = "avg_time"  #average time for an evaluation
 SD_BIOMODEL_NUM = "biomodel_num"  #number of the biomodel
