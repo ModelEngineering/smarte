@@ -116,7 +116,10 @@ class ExperimentRunner(object):
             # Process the condition
             biomodel_num = condition[cn.SD_BIOMODEL_NUM]
             result = smt.ExperimentResult(**condition)
-            model = mdl.Model.getBiomodel(biomodel_num)
+            try:
+                model = mdl.Model.getBiomodel(biomodel_num)
+            except ValueError:
+                model = None
             if model is None:
                 result[cn.SD_STATUS] = "Cannot create model."
             # Assign the qualifiers
@@ -227,7 +230,7 @@ class ExperimentRunner(object):
         -------
         """
         # Create the local cluster
-        client = Client(n_workers=4)
+        client = Client()
         lazy_results = []
         try:
             #
