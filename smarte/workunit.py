@@ -48,8 +48,10 @@ class Workunit(ExtendedDict):
         self.kwargs = ExtendedDict({})  # Arguments passed
         for key in cn.SD_CONDITIONS:
             value = eval(key)
+            if isinstance(value, str):
+                value = value.strip()
             self.kwargs[key] = value
-            if eval(key) == cn.SD_CONDITION_VALUE_ALL:
+            if value == cn.SD_CONDITION_VALUE_ALL:
                 self[key] = cn.SD_CONDITION_VALUE_ALL_DCT[key]
             elif isinstance(value, str):
                 self[key] = [eval(key)]

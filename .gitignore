@@ -6,6 +6,7 @@ __pycache__/
 
 # C extensions
 *.so
+experiments/*.csv
 
 data/*.xml
 *.swp
