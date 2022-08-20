@@ -230,7 +230,8 @@ class ExperimentRunner(object):
         -------
         """
         # Create the local cluster
-        client = Client()
+        client = Client(n_workers=4,
+                       memory_limit='4GB')
         lazy_results = []
         try:
             #
@@ -251,14 +252,15 @@ class ExperimentRunner(object):
             print(exp)
             num_result = 0
         final_result = dask.compute(*lazy_results)  # trigger computation
-        #final_result = dask.compute(lazy_results[1])  # trigger computation
         client.close()
         return final_result
    
 
 if __name__ == '__main__':
-    if True:
+    if False:
         exclude_factor_dct = dict(biomodel_num=BIOMODEL_EXCLUDES)
         a_workunit = smt.Workunit(noise_mag=0.1)
         runner = smt.ExperimentRunner(a_workunit, exclude_factor_dct=exclude_factor_dct)
         runner.runWorkunit()
+    else:
+        ExperimentRunner.runWorkunits()
