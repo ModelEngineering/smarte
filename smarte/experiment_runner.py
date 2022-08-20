@@ -218,7 +218,7 @@ class ExperimentRunner(object):
         return final_df
 
     @classmethod
-    def runWorkunits(cls, path=WORKUNIT_FILE):
+    def runWorkunits(cls, num_worker=4, path=WORKUNIT_FILE):
         """
         Runs workunits in parallel.
 
@@ -230,8 +230,7 @@ class ExperimentRunner(object):
         -------
         """
         # Create the local cluster
-        client = Client(n_workers=4,
-                       memory_limit='4GB')
+        client = Client(n_workers=num_worker, memory_limit='4GB')
         lazy_results = []
         try:
             #
@@ -241,6 +240,8 @@ class ExperimentRunner(object):
             #
             lazy_results = []
             for line in lines:
+                if line.strip()[0] == "#":
+                    continue
                 try:
                     workunit = smt.Workunit.getFromStr(line)
                 except:
