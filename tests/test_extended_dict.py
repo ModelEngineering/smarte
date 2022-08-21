@@ -2,8 +2,8 @@ import unittest
 
 from smarte.extended_dict import ExtendedDict, KEY_VALUE_SEP, VALUE_SEP
 
-IGNORE_TEST = False
-IS_PLOT = False
+IGNORE_TEST = True
+IS_PLOT = True
 
 DCT = {"a": 100, "b": "testing", "c": 1.04}
         
@@ -32,6 +32,15 @@ class TestExtendedDict(unittest.TestCase):
         e_dct.append(dct)
         trues = [len(v) == 2 for v in e_dct.values()]
         self.assertTrue(all(trues))
+
+    def testExtend(self):
+        # TESTING
+        e_dct = ExtendedDict({"a": [], "b": [1]})
+        dct = ExtendedDict(a=[1], b=[])
+        e_dct.extend(dct)
+        trues = [len(v) == 1 for v in e_dct.values()]
+        self.assertTrue(all(trues))
+        self.assertEquals(e_dct["a"][0], e_dct["b"][0])
 
     def testStr(self):
         if IGNORE_TEST:

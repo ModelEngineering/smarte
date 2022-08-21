@@ -36,6 +36,22 @@ class ExtendedDict(dict):
         for key, value in dct.items():
             self[key].append(value)
 
+    def extend(self, dct):
+        """
+        Extends values in dictionary.
+
+        Parameters
+        ----------
+        dct: dict
+            key: key to use
+            value: value to append
+        """
+        if len(self) == 0:
+            for key in dct.keys():
+                self[key] = []
+        for key, value in dct.items():
+            self[key].extend(value)
+
     def __str__(self):
         """
         Creates a name based on the keys and values. Works
