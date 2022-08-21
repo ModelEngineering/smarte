@@ -265,4 +265,4 @@ if __name__ == '__main__':
         runner = smt.ExperimentRunner(a_workunit, exclude_factor_dct=exclude_factor_dct)
         runner.runWorkunit()
     else:
-        ExperimentRunner.runWorkunits()
+        ExperimentRunner.runWorkunits(num_worker=12)
