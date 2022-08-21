@@ -229,7 +229,8 @@ class ExperimentRunner(object):
         -------
         """
         # Create the local cluster
-        client = Client(n_workers=num_worker, memory_limit='4GB')
+        client = Client(n_workers=num_worker, memory_limit='4GB',
+               threads_per_worker=1)
         lazy_results = []
         try:
             #
@@ -245,7 +246,8 @@ class ExperimentRunner(object):
                     workunit = smt.Workunit.getFromStr(line)
                 except:
                     raise ValueError("Invalid workunit string: %s" % line)
-                lazy_result = dask.delayed(wrapper)(workunit, exclude_factor_dct)
+                lazy_result = dask.delayed(wrapper)(workunit,
+                      exclude_factor_dct)
                 lazy_results.append(lazy_result)
             #
         except Exception as exp:
