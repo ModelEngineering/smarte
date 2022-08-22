@@ -229,7 +229,7 @@ class ExperimentRunner(object):
         -------
         """
         # Create the local cluster
-        client = Client(n_workers=num_worker, memory_limit='4GB',
+        client = Client(n_workers=num_worker, memory_limit='5GB',
                threads_per_worker=1)
         lazy_results = []
         try:
