@@ -92,10 +92,16 @@ class ExperimentRunner(object):
         # Handle restart
         if os.path.isfile(self.out_path) and is_recover:
             df = self.readCsv(self.out_path)
-            results = smt.ExperimentResult.makeAggregateResult(df)
-            conditions = smt.ExperimentCondition.getFromDF(df)
-            condition_strs = [str(c) for c in conditions]
+            if df is not None:
+                results = smt.ExperimentResult.makeAggregateResult(df)
+                conditions = smt.ExperimentCondition.getFromDF(df)
+                condition_strs = [str(c) for c in conditions]
+                success = True
+            else:
+                success = False
         else:
+            sucess = False
+        if not success:
             results = smt.ExperimentResult.makeAggregateResult()
             condition_strs = []
         # Iterate across the models
@@ -190,7 +196,10 @@ class ExperimentRunner(object):
         """
         if path is None:
             path = cls.makePath(workunit, directory)
-        df = pd.read_csv(path, index_col=cn.SD_BIOMODEL_NUM)
+        try:
+            df = pd.read_csv(path, index_col=cn.SD_BIOMODEL_NUM)
+        except Exception:
+            return None
         for column in df.columns:
             if UNNAMED in column:
                 del df[column]
