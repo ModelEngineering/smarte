@@ -3,6 +3,9 @@
 # Must be in smt virtual environment and have done setup_run.sh
 while :
 do
+    echo ""
+    echo "*** New iteration at: `date` ***"
+    echo ""
     python smarte/experiment_runner.py & 
     sleep 1800
     PID=`ps aux | grep "experiment_runner" | grep -v "grep" \
