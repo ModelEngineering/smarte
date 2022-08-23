@@ -77,3 +77,16 @@ class Workunit(ExtendedDict):
         list-str
         """
         return [k for k, v in self.items() if len(v) > 1]
+
+    def removeExpansions(self):
+        """
+        Removes the expansion of "all" values.
+        """
+        new_workunit = Workunit(**self.kwargs)
+        for key, value in new_workunit.items():
+            if self.kwargs[key] == cn.SD_CONDITION_VALUE_ALL:
+                new_value = cn.SD_CONDITION_VALUE_ALL
+            else:
+                new_value = value
+            new_workunit[key] = [new_value]
+        return new_workunit

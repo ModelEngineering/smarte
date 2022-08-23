@@ -1,6 +1,5 @@
 """Runs experiments for cn.SD_CONTROLLED_FACTORS"""
 
-
 import smarte as smt
 from smarte import constants as cn
 import SBMLModel as mdl
@@ -90,6 +89,7 @@ class ExperimentRunner(object):
             index: biomodel_num
         """
         # Handle restart
+        success = False
         if os.path.isfile(self.out_path) and is_recover:
             df = self.readCsv(self.out_path)
             if df is not None:
@@ -97,10 +97,6 @@ class ExperimentRunner(object):
                 conditions = smt.ExperimentCondition.getFromDF(df)
                 condition_strs = [str(c) for c in conditions]
                 success = True
-            else:
-                success = False
-        else:
-            sucess = False
         if not success:
             results = smt.ExperimentResult.makeAggregateResult()
             condition_strs = []
