@@ -1,6 +1,5 @@
 """Runs experiments for cn.SD_CONTROLLED_FACTORS"""
 
-
 import smarte as smt
 from smarte import constants as cn
 import SBMLModel as mdl
