@@ -7,8 +7,8 @@ import os
 import pandas as pd
 import unittest
 
-IGNORE_TEST = False
-IS_PLOT = False
+IGNORE_TEST = True
+IS_PLOT = True
 METHOD = "leastsq"
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_FILE = os.path.join(TEST_DIR, "test_experiment_runner.csv")        
@@ -57,6 +57,12 @@ class TestWorkunit(unittest.TestCase):
         conditions = list(workunit.iterator)
         self.assertEqual(len(conditions), 2)
 
+    def testRemoveExpansions(self):
+        if IGNORE_TEST:
+            return
+        new_workunit = self.workunit.removeExpansions()
+        for key in [cn.SD_BIOMODEL_NUM, cn.SD_TS_INSTANCE]:
+            self.assertEqual(new_workunit[key][0], cn.SD_CONDITION_VALUE_ALL)
         
 
 if __name__ == '__main__':
