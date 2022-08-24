@@ -90,8 +90,8 @@ class ExperimentRunner(object):
             index: biomodel_num
         """
         # Handle restart
+        success = False
         if os.path.isfile(self.out_path) and is_recover:
-            success = False
             df = self.readCsv(self.out_path)
             if df is not None:
                 results = smt.ExperimentResult.makeAggregateResult(df)
