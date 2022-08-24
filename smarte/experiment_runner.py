@@ -91,16 +91,13 @@ class ExperimentRunner(object):
         """
         # Handle restart
         if os.path.isfile(self.out_path) and is_recover:
+            success = False
             df = self.readCsv(self.out_path)
             if df is not None:
                 results = smt.ExperimentResult.makeAggregateResult(df)
                 conditions = smt.ExperimentCondition.getFromDF(df)
                 condition_strs = [str(c) for c in conditions]
                 success = True
-            else:
-                success = False
-        else:
-            sucess = False
         if not success:
             results = smt.ExperimentResult.makeAggregateResult()
             condition_strs = []
