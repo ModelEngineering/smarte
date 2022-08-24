@@ -71,7 +71,10 @@ class ExtendedDict(dict):
         #
         if self.is_elemental:
             names = []
-            for key, value in self.items():
+            keys = list(self.keys())
+            keys.sort()
+            for key in keys:
+                value = self[key]
                 if isinstance(value, str):
                     name = stringify(key, value)
                 elif isinstance(value, list):

@@ -26,15 +26,30 @@ SD_NUM_PARAMETER = "num_parameter"  #number of parameters
 SD_TOT_TIME = "tot_time"  #total run time
 SD_TS_INSTANCE = "ts_instance"  # instance of the synthetic observational data
 SD_NOISE_MAG = "noise_mag"  #magnitude of the noise used
-SD_RANGE_INITIAL_FRAC = "range_initial_frac"  # fraction of value for initial value
+SD_NUM_LATINCUBE = "num_latincube"  # fraction of value for initial value
 SD_RANGE_MAX_FRAC = "range_max_frac"  # fraction of value for max of range
 SD_RANGE_MIN_FRAC = "range_min_frac"  # fraction of value for min of range
 SD_STATUS = "status"  #str (reason for failure)
+# Universal values for conditions
+SD_CONDITION_VALUE_ALL = "all"
+SD_CONDITION_VALUE_ALL_DCT = {
+      SD_BIOMODEL_NUM: list(range(1, 1200)),
+      SD_TS_INSTANCE:  list(range(1, 6)),
+      }
 # A califier is something the descries the model or the experiment
 # These values are not aggregated
-SD_CONDITIONS = [SD_BIOMODEL_NUM, SD_METHOD, SD_NOISE_MAG,  SD_RANGE_MIN_FRAC,
-      SD_RANGE_MAX_FRAC, SD_RANGE_INITIAL_FRAC, SD_COLUMNS_DELETED,
-      SD_MAX_FEV, SD_TS_INSTANCE,]
+SD_CONDITION_DCT = {
+      SD_BIOMODEL_NUM:SD_CONDITION_VALUE_ALL,
+      SD_COLUMNS_DELETED: 0,
+      SD_MAX_FEV: 1000,
+      SD_METHOD: "differential_evoluation",
+      SD_NOISE_MAG: 0,
+      SD_NUM_LATINCUBE: 1,
+      SD_RANGE_MIN_FRAC: 0.5,
+      SD_RANGE_MAX_FRAC: 2.0,
+      SD_TS_INSTANCE: SD_CONDITION_VALUE_ALL,
+}
+SD_CONDITIONS = list(SD_CONDITION_DCT.keys())
 SD_MODEL_DESCRIPTORS = [SD_NUM_SPECIES, SD_NUM_REACTION, SD_NUM_PARAMETER]
 SD_QUALIFIERS = list(SD_MODEL_DESCRIPTORS)
 SD_QUALIFIERS.extend(SD_CONDITIONS)
@@ -45,9 +60,3 @@ SD_METRICS.extend(SD_TIME_METRICS)
 SD_METRICS.append(SD_STATUS)
 SD_ALL = list(SD_QUALIFIERS)
 SD_ALL.extend(SD_METRICS)
-# Universal values for conditions
-SD_CONDITION_VALUE_ALL = "all"
-SD_CONDITION_VALUE_ALL_DCT = {
-      SD_BIOMODEL_NUM: list(range(1, 1200)),
-      SD_TS_INSTANCE:  list(range(1, 6)),
-      }

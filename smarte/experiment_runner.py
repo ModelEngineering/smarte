@@ -132,7 +132,7 @@ class ExperimentRunner(object):
                           biomodel_num, observed_ts,
                           range_min_frac=condition[cn.SD_RANGE_MIN_FRAC],
                           range_max_frac=condition[cn.SD_RANGE_MAX_FRAC],
-                          initial_value_frac=condition[cn.SD_RANGE_INITIAL_FRAC],
+                          num_latincube=condition[cn.SD_NUM_LATINCUBE],
                           method_names=condition[cn.SD_METHOD],
                           max_fev=condition[cn.SD_MAX_FEV],
                           )

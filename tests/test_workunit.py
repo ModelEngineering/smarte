@@ -26,6 +26,7 @@ class TestWorkunit(unittest.TestCase):
         if IGNORE_TEST:
             return
         self.assertEqual(self.workunit[cn.SD_METHOD][0], METHOD)
+        self.assertEqual(len(self.workunit), len(cn.SD_CONDITIONS))
 
     def testStr(self):
         if IGNORE_TEST:
@@ -63,6 +64,20 @@ class TestWorkunit(unittest.TestCase):
         new_workunit = self.workunit.removeExpansions()
         for key in [cn.SD_BIOMODEL_NUM, cn.SD_TS_INSTANCE]:
             self.assertEqual(new_workunit[key][0], cn.SD_CONDITION_VALUE_ALL)
+
+    def testBugBadTypeHandling(self):
+        # TESTING
+        path = os.path.join(cn.EXPERIMENT_DIR, "workunits.txt")
+        with open(path, "r") as fd:
+            workunit_strs = fd.readlines()
+        workunit_strs = [w for w in workunit_strs]
+        workunits = [smt.Workunit.getFromStr(w) for w in workunit_strs]
+        agg_workunits = self.workunit.makeEmpty()
+        for workunit in workunits[1:]:
+            dct = workunit.removeExpansions()
+            agg_workunits.extend(dct)
+        self.assertGreater(len(agg_workunits[cn.SD_MAX_FEV]), 1)
+        self.assertEqual(len(agg_workunits[cn.SD_BIOMODEL_NUM]), 1)
         
 
 if __name__ == '__main__':
