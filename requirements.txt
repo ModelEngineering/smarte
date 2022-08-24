@@ -13,6 +13,7 @@ docstring_expander
 jupyterlab
 dask-kubernetes
 libroadrunner
+lhsmdu
 lmfit
 nose
 numpy

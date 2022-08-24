@@ -36,7 +36,7 @@ class ExtendedDict(dict):
         for key, value in dct.items():
             self[key].append(value)
 
-    def extend(self, dct):
+    def extend(self, dct, is_duplicates=False):
         """
         Extends values in dictionary.
 
@@ -45,12 +45,17 @@ class ExtendedDict(dict):
         dct: dict
             key: key to use
             value: value to append
+        is_duplicates: allow duplicates
         """
         if len(self) == 0:
             for key in dct.keys():
                 self[key] = []
         for key, value in dct.items():
-            self[key].extend(value)
+            if is_duplicates:
+                self[key].extend(value)
+            else:
+                result = set(self[key]).union(value)
+                self[key] = list(result)
 
     def __str__(self):
         """
@@ -66,7 +71,10 @@ class ExtendedDict(dict):
         #
         if self.is_elemental:
             names = []
-            for key, value in self.items():
+            keys = list(self.keys())
+            keys.sort()
+            for key in keys:
+                value = self[key]
                 if isinstance(value, str):
                     name = stringify(key, value)
                 elif isinstance(value, list):
