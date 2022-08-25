@@ -251,9 +251,12 @@ class ExperimentRunner(object):
                     workunit = smt.Workunit.getFromStr(line)
                 except:
                     raise ValueError("Invalid workunit string: %s" % line)
-                lazy_result = dask.delayed(wrapper)(workunit,
-                      exclude_factor_dct)
-                lazy_results.append(lazy_result)
+                if True:
+                    lazy_result = dask.delayed(wrapper)(workunit,
+                          exclude_factor_dct)
+                    lazy_results.append(lazy_result)
+                else:
+                    wrapper(workunit, exclude_factor_dct)
             #
         except Exception as exp:
             print(exp)

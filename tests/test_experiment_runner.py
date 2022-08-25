@@ -71,6 +71,18 @@ class TestExperimentRunner(unittest.TestCase):
         new_df = smt.ExperimentRunner.readCsv(workunit=WORKUNIT, directory=TEST_DIR)
         self.assertEqual(len(df), len(new_df))
 
+    def testRunWorkunitBug1(self):
+        if IGNORE_TEST:
+            return
+        self.init()
+        stg = "biomodel_num--1__columns_deleted--0__max_fev--10000__method--leastsq__noise_mag--0.1__num_latincube--2__range_max_frac--2.0__range_min_frac--0.5__ts_instance--1"
+        workunit = smt.Workunit.getFromStr(stg)
+        self.runner = smt.ExperimentRunner(workunit, directory=TEST_DIR)
+        df = self.runner.runWorkunit(is_report=IGNORE_TEST, is_recover=False)
+        self.assertGreater(len(df), 0)
+        self.assertTrue(isinstance(df, pd.DataFrame))
+        
+
     def testReadCsv(self):
         if IGNORE_TEST:
             return
