@@ -142,7 +142,7 @@ class SBMLFitter():
         sfitter = Smarte(sbml_model, data)
         sfitter.fit(parameters)
         """
-        self.fitter.execute()
+        self.fitter.fit()
 
     def getAccuracies(self, true_parameters):
         """

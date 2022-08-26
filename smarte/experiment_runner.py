@@ -1,6 +1,5 @@
 """Runs experiments for cn.SD_CONTROLLED_FACTORS"""
 
-
 import smarte as smt
 from smarte import constants as cn
 import SBMLModel as mdl
@@ -90,12 +89,15 @@ class ExperimentRunner(object):
             index: biomodel_num
         """
         # Handle restart
+        success = False
         if os.path.isfile(self.out_path) and is_recover:
             df = self.readCsv(self.out_path)
-            results = smt.ExperimentResult.makeAggregateResult(df)
-            conditions = smt.ExperimentCondition.getFromDF(df)
-            condition_strs = [str(c) for c in conditions]
-        else:
+            if df is not None:
+                results = smt.ExperimentResult.makeAggregateResult(df)
+                conditions = smt.ExperimentCondition.getFromDF(df)
+                condition_strs = [str(c) for c in conditions]
+                success = True
+        if not success:
             results = smt.ExperimentResult.makeAggregateResult()
             condition_strs = []
         # Iterate across the models
@@ -130,7 +132,7 @@ class ExperimentRunner(object):
                           biomodel_num, observed_ts,
                           range_min_frac=condition[cn.SD_RANGE_MIN_FRAC],
                           range_max_frac=condition[cn.SD_RANGE_MAX_FRAC],
-                          initial_value_frac=condition[cn.SD_RANGE_INITIAL_FRAC],
+                          num_latincube=condition[cn.SD_NUM_LATINCUBE],
                           method_names=condition[cn.SD_METHOD],
                           max_fev=condition[cn.SD_MAX_FEV],
                           )
@@ -190,7 +192,10 @@ class ExperimentRunner(object):
         """
         if path is None:
             path = cls.makePath(workunit, directory)
-        df = pd.read_csv(path, index_col=cn.SD_BIOMODEL_NUM)
+        try:
+            df = pd.read_csv(path, index_col=cn.SD_BIOMODEL_NUM)
+        except Exception:
+            return None
         for column in df.columns:
             if UNNAMED in column:
                 del df[column]
@@ -246,9 +251,12 @@ class ExperimentRunner(object):
                     workunit = smt.Workunit.getFromStr(line)
                 except:
                     raise ValueError("Invalid workunit string: %s" % line)
-                lazy_result = dask.delayed(wrapper)(workunit,
-                      exclude_factor_dct)
-                lazy_results.append(lazy_result)
+                if True:
+                    lazy_result = dask.delayed(wrapper)(workunit,
+                          exclude_factor_dct)
+                    lazy_results.append(lazy_result)
+                else:
+                    wrapper(workunit, exclude_factor_dct)
             #
         except Exception as exp:
             print(exp)

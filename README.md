@@ -19,5 +19,14 @@
 * To get plots, ``sudo apt install python3.9-tk``
 * `git clone --recurse-submodules https://github.com/ModelEngineering/smarte.git
 * To get tkinter, ``sudo apt-get install python3.6-tk``.
+* Issues with Tellurium make it so that python 3.6 or 3.7 are required. Proceed as follows on macos
+  * install homebrew: ``/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"``
+  * Use homebrew to install pyenv (manages versions of python): ``brew updae; brew install pyenv``
+  * ``pyenv install 3.7.10``
+  * make 3.7.10 the default pyenv version: ``pyenv global 3.7.10``
+  * creae the virtual environment: ``pyenv exec python -m venv smt``
+  * ``source smt/bin/activate``
+  * ``pip install --upgrade pip``  # upgrade the version of pip
+  * ``pip install -r requirements.txt``
 
 # Versions
