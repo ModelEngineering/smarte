@@ -163,9 +163,12 @@ class SBMLFitter():
             self.fit()
         parameter_dct = true_parameters.valuesdict()
         self.fit()
-        value_dct = dict(self.fitter.final_params.valuesdict())
-        error_dct = {n: np.nan if v == 0 else np.log2(v/parameter_dct[n])
-               for n, v in value_dct.items()}
+        if self.fitter.final_params is None:
+            error_dct = {n: np.nan n in true_parameters.valuesdict().keys()}
+        else:
+            value_dct = dict(self.fitter.final_params.valuesdict())
+            error_dct = {n: np.nan if v == 0 else np.log2(v/parameter_dct[n])
+                   for n, v in value_dct.items()}
         # Calculate estimation errors
         return pd.Series(error_dct, index=value_dct.keys())
 

@@ -229,7 +229,7 @@ class ExperimentRunner(object):
         -------
         """
         # Create the local cluster
-        client = Client(n_workers=num_worker, memory_limit='5GB',
+        client = Client(n_workers=num_worker, memory_limit='3GB',
                threads_per_worker=1)
         lazy_results = []
         try:
@@ -265,4 +265,4 @@ if __name__ == '__main__':
         runner = smt.ExperimentRunner(a_workunit, exclude_factor_dct=exclude_factor_dct)
         runner.runWorkunit()
     else:
-        ExperimentRunner.runWorkunits(num_worker=12)
+        ExperimentRunner.runWorkunits(num_worker=2)
