@@ -17,7 +17,9 @@
 * Use python3.9 (since there's a Tellurium problem with 3.10)
 * Some i[configuration may be required to use Jupyter](https://stackoverflow.com/questions/67679019/jupyter-lab-not-opening-on-ubuntu).
 * To get plots, ``sudo apt install python3.9-tk``
-* `git clone --recurse-submodules https://github.com/ModelEngineering/smarte.git
+* You should clone the following projects and include them in PYTHONPATH
+  *`git clone https://github.com/ModelEngineering/fitterpp.git
+  * git clone https://github.com/ModelEngineering/SBMLModel.git
 * To get tkinter, ``sudo apt-get install python3.6-tk``.
 * Issues with Tellurium make it so that python 3.6 or 3.7 are required. Proceed as follows on macos
   * install homebrew: ``/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"``
