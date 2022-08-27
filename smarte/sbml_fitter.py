@@ -171,7 +171,7 @@ class SBMLFitter():
             error_dct = {n: np.nan if v == 0 else np.log2(v/parameter_dct[n])
                    for n, v in value_dct.items()}
         # Calculate estimation errors
-        return pd.Series(error_dct, index=value_dct.keys())
+        return pd.Series(error_dct, index=error_dct.keys())
 
     def evaluateFit(self, true_parameters):
         """
