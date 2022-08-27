@@ -245,18 +245,20 @@ class ExperimentRunner(object):
             #
             lazy_results = []
             for line in lines:
-                if line.strip()[0] == "#":
+                # Remove trailing newline
+                new_line = line.strip()
+                # Handle comments
+                if new_line[0]  == "#":
                     continue
+                # Extract the workunit
                 try:
                     workunit = smt.Workunit.getFromStr(line)
                 except:
                     raise ValueError("Invalid workunit string: %s" % line)
-                if True:
-                    lazy_result = dask.delayed(wrapper)(workunit,
-                          exclude_factor_dct)
-                    lazy_results.append(lazy_result)
-                else:
-                    wrapper(workunit, exclude_factor_dct)
+                # Assemble the list of computations
+                lazy_result = dask.delayed(wrapper)(workunit,
+                      exclude_factor_dct)
+                lazy_results.append(lazy_result)
             #
         except Exception as exp:
             print(exp)
@@ -268,9 +270,11 @@ class ExperimentRunner(object):
 
 if __name__ == '__main__':
     if False:
-        exclude_factor_dct = dict(biomodel_num=BIOMODEL_EXCLUDES)
+        if IGNORE_TEST:
+            return
         a_workunit = smt.Workunit(noise_mag=0.1)
-        runner = smt.ExperimentRunner(a_workunit, exclude_factor_dct=exclude_factor_dct)
+        runner = smt.ExperimentRunner(a_workunit,
+              exclude_factor_dct=exclude_factor_dct)
         runner.runWorkunit()
     else:
         ExperimentRunner.runWorkunits(num_worker=12)

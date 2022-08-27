@@ -10,8 +10,8 @@ import numpy as np
 import unittest
 
 
-IGNORE_TEST = False
-IS_PLOT = False
+IGNORE_TEST = True
+IS_PLOT = True
 TS_INSTANCE = 1
 NUM_MODEL = 10
 WORKUNIT = smt.Workunit(biomodel_num=list(range(1, NUM_MODEL + 1)),
@@ -114,9 +114,7 @@ class TestExperimentRunner(unittest.TestCase):
         os.remove(TEST_FILE1)
 
     def testRunWorkunits(self):
-        if IGNORE_TEST:
-            return
-        return
+        # TESTING
         df = smt.ExperimentRunner.runWorkunits()
         
 
