@@ -252,9 +252,10 @@ class ExperimentRunner(object):
                     continue
                 # Extract the workunit
                 try:
-                    workunit = smt.Workunit.getFromStr(line)
+                    workunit = smt.Workunit.getFromStr(new_line)
                 except:
-                    raise ValueError("Invalid workunit string: %s" % line)
+                    raise ValueError("Invalid workunit string: %s"
+                          % new_line)
                 # Assemble the list of computations
                 lazy_result = dask.delayed(wrapper)(workunit,
                       exclude_factor_dct)
