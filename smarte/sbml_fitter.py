@@ -207,7 +207,8 @@ class SBMLFitter():
         dct[cn.SD_MIN_ERR] = sorted_values[0]
         df_stats = self.fitter.plotPerformance(is_plot=False)
         indices = list(df_stats.index)
-        dct[cn.SD_METHOD] = indices[0]
+        parts = indices[0].split(cn.VALUE_SEP)
+        dct[cn.SD_METHOD] = parts[0]
         dct[cn.SD_TOT_TIME] = df_stats.loc[indices[0], "tot"]
         dct[cn.SD_AVG_TIME] = df_stats.loc[indices[0], "avg"]
         dct[cn.SD_CNT] = df_stats.loc[indices[0], "cnt"]

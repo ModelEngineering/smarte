@@ -103,7 +103,6 @@ class ExperimentRunner(object):
         # Iterate across the models
         for condition in self.workunit.iterator:
             # See if condition is to be processed
-            # Already processed?
             if str(condition) in condition_strs:
                 continue
             # Excluded?

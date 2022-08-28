@@ -42,7 +42,7 @@ SD_CONDITION_DCT = {
       SD_BIOMODEL_NUM:SD_CONDITION_VALUE_ALL,
       SD_COLUMNS_DELETED: 0,
       SD_MAX_FEV: 1000,
-      SD_METHOD: "differential_evoluation",
+      SD_METHOD: "differential_evolution",
       SD_NOISE_MAG: 0,
       SD_NUM_LATINCUBE: 1,
       SD_RANGE_MIN_FRAC: 0.5,
@@ -60,3 +60,5 @@ SD_METRICS.extend(SD_TIME_METRICS)
 SD_METRICS.append(SD_STATUS)
 SD_ALL = list(SD_QUALIFIERS)
 SD_ALL.extend(SD_METRICS)
+# Miscellaneous
+VALUE_SEP = "--"
