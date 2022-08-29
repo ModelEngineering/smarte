@@ -77,7 +77,7 @@ class TestWorkunit(unittest.TestCase):
         for workunit in workunits[1:]:
             dct = workunit.removeExpansions()
             agg_workunits.extend(dct)
-        self.assertGreater(len(agg_workunits[cn.SD_MAX_FEV]), 1)
+        self.assertGreater(len(agg_workunits[cn.SD_NUM_LATINCUBE]), 1)
         self.assertEqual(len(agg_workunits[cn.SD_BIOMODEL_NUM]), 1)
         
 

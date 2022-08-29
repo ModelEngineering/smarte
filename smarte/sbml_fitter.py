@@ -173,6 +173,7 @@ class SBMLFitter():
         # Calculate estimation errors
         return pd.Series(error_dct, index=error_dct.keys())
 
+    # TODO: Only handles a single method
     def evaluateFit(self, true_parameters):
         """
         Calculates fitter statistics.
@@ -207,10 +208,13 @@ class SBMLFitter():
         dct[cn.SD_MIN_ERR] = sorted_values[0]
         df_stats = self.fitter.plotPerformance(is_plot=False)
         indices = list(df_stats.index)
-        dct[cn.SD_METHOD] = indices[0]
-        dct[cn.SD_TOT_TIME] = df_stats.loc[indices[0], "tot"]
-        dct[cn.SD_AVG_TIME] = df_stats.loc[indices[0], "avg"]
-        dct[cn.SD_CNT] = df_stats.loc[indices[0], "cnt"]
+        parts = indices[0].split(cn.VALUE_SEP)
+        method = parts[0]
+        dct[cn.SD_METHOD] = method
+        sel_indices = [i for i in indices if method in i]
+        dct[cn.SD_TOT_TIME] = np.sum(df_stats.loc[sel_indices, "tot"])
+        dct[cn.SD_AVG_TIME] = np.sum(df_stats.loc[sel_indices, "avg"])
+        dct[cn.SD_CNT] = np.sum(df_stats.loc[sel_indices, "cnt"])
         dct[cn.SD_NUM_SPECIES] = len(self.model.species_names)
         dct[cn.SD_NUM_PARAMETER] = len(self.model.parameter_names)
         dct[cn.SD_NUM_REACTION] = len(self.model.reaction_names)
