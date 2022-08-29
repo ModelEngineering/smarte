@@ -95,6 +95,7 @@ class TestSBMLFitter(unittest.TestCase):
     def testFitS1S4(self):
         if IGNORE_TEST:
             return
+        self.init()
         def test(ts, is_fail=False):
             sfitter = smt.SBMLFitter(MODEL, self.parameters, ts,
                   point_density=POINT_DENSITY)
@@ -148,6 +149,16 @@ class TestSBMLFitter(unittest.TestCase):
         dct = sfitter.evaluateFit(TRUE_PARAMETERS)
         self.assertTrue(isinstance(dct, dict))
         self.assertTrue("differential_evolution" in dct["method"])
+
+    def testFitLatinCube(self):
+        if IGNORE_TEST:
+            return
+        self.init()
+        parameter_dct = dict(PARAMETER_DCT)
+        sfitter = smt.SBMLFitter(MODEL, self.parameters, TS,
+              point_density=POINT_DENSITY, num_latincube=2, is_collect=True)
+        dct = sfitter.evaluateFit(TRUE_PARAMETERS)
+        self.assertTrue("differential_evolution" in dct.values())
 
     def evaluateBiomodelFit(self, model_num, noise_mag, **kwargs):
         data = smt.SBMLFitter.makeBiomodelSyntheticData(model_num,

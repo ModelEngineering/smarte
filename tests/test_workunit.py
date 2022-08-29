@@ -7,8 +7,8 @@ import os
 import pandas as pd
 import unittest
 
-IGNORE_TEST = True
-IS_PLOT = True
+IGNORE_TEST = False
+IS_PLOT = False
 METHOD = "leastsq"
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_FILE = os.path.join(TEST_DIR, "test_experiment_runner.csv")        
@@ -66,7 +66,8 @@ class TestWorkunit(unittest.TestCase):
             self.assertEqual(new_workunit[key][0], cn.SD_CONDITION_VALUE_ALL)
 
     def testBugBadTypeHandling(self):
-        # TESTING
+        if IGNORE_TEST:
+            return
         path = os.path.join(cn.EXPERIMENT_DIR, "workunits.txt")
         with open(path, "r") as fd:
             workunit_strs = fd.readlines()
@@ -76,7 +77,7 @@ class TestWorkunit(unittest.TestCase):
         for workunit in workunits[1:]:
             dct = workunit.removeExpansions()
             agg_workunits.extend(dct)
-        self.assertGreater(len(agg_workunits[cn.SD_MAX_FEV]), 1)
+        self.assertGreater(len(agg_workunits[cn.SD_NUM_LATINCUBE]), 1)
         self.assertEqual(len(agg_workunits[cn.SD_BIOMODEL_NUM]), 1)
         
 
