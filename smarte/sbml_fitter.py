@@ -208,13 +208,13 @@ class SBMLFitter():
         dct[cn.SD_MIN_ERR] = sorted_values[0]
         df_stats = self.fitter.plotPerformance(is_plot=False)
         indices = list(df_stats.index)
+        # TODO: generalize to having multiple methods
         parts = indices[0].split(cn.VALUE_SEP)
         method = parts[0]
         dct[cn.SD_METHOD] = method
-        sel_indices = [i for i in indices if method in i]
-        dct[cn.SD_TOT_TIME] = np.sum(df_stats.loc[sel_indices, "tot"])
-        dct[cn.SD_AVG_TIME] = np.sum(df_stats.loc[sel_indices, "avg"])
-        dct[cn.SD_CNT] = np.sum(df_stats.loc[sel_indices, "cnt"])
+        dct[cn.SD_TOT_TIME] = np.sum(df_stats["tot"])
+        dct[cn.SD_AVG_TIME] = np.sum(df_stats["avg"])
+        dct[cn.SD_CNT] = np.sum(df_stats["cnt"])
         dct[cn.SD_NUM_SPECIES] = len(self.model.species_names)
         dct[cn.SD_NUM_PARAMETER] = len(self.model.parameter_names)
         dct[cn.SD_NUM_REACTION] = len(self.model.reaction_names)

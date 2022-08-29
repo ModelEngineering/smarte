@@ -16,7 +16,9 @@ SD_BIOMODEL_NUM = "biomodel_num"  #number of the biomodel
 SD_COLUMNS_DELETED = "columns_deleted"  # Number of columns deleted in synthetic observational data
 SD_CNT = "cnt"  #count of instances ran
 SD_MAX_ERR = "max_err"  # parameter error with the largest absolute value
-SD_MAX_FEV = "max_fev"  # Maximum number of function evaluations
+SD_MAX_FEV = "max_fev"  # Maximum number of function evaluations for an application
+#                         of a method. For multistart (latincube), this maximum
+#                         is used for each instance.
 SD_MEDIAN_ERR = "median_err"  # Median of the error values for a parameter
 SD_METHOD = "method"  # Name of fitting algorithm
 SD_MIN_ERR = "min_err"  # parameter error with the smallest absolute value
