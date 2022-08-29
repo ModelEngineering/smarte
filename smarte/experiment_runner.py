@@ -167,7 +167,6 @@ class ExperimentRunner(object):
         filename = "%d.csv" % ts_instance
         path = os.path.join(path, filename)
         df = pd.read_csv(path)
-        # TODO:
         if "miliseconds" in df.columns:
             df = df.rename(columns={"miliseconds": cn.MILLISECONDS})
         df = df.set_index(cn.MILLISECONDS)
