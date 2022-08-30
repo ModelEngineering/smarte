@@ -1,5 +1,5 @@
 #!/bin/bash
-# Runs the experiments for 30 min intervals
+# Runs the experiments for 2hr intervals
 # Must be in smt virtual environment and have done setup_run.sh
 while :
 do
@@ -7,6 +7,6 @@ do
     echo "*** New iteration at: `date` ***"
     echo ""
     python smarte/experiment_runner.py  &
-    sleep 1800
+    sleep 7200
     bash kill.sh
 done
