@@ -16,7 +16,9 @@ SD_BIOMODEL_NUM = "biomodel_num"  #number of the biomodel
 SD_COLUMNS_DELETED = "columns_deleted"  # Number of columns deleted in synthetic observational data
 SD_CNT = "cnt"  #count of instances ran
 SD_MAX_ERR = "max_err"  # parameter error with the largest absolute value
-SD_MAX_FEV = "max_fev"  # Maximum number of function evaluations
+SD_MAX_FEV = "max_fev"  # Maximum number of function evaluations for an application
+#                         of a method. For multistart (latincube), this maximum
+#                         is used for each instance.
 SD_MEDIAN_ERR = "median_err"  # Median of the error values for a parameter
 SD_METHOD = "method"  # Name of fitting algorithm
 SD_MIN_ERR = "min_err"  # parameter error with the smallest absolute value
@@ -42,7 +44,7 @@ SD_CONDITION_DCT = {
       SD_BIOMODEL_NUM:SD_CONDITION_VALUE_ALL,
       SD_COLUMNS_DELETED: 0,
       SD_MAX_FEV: 1000,
-      SD_METHOD: "differential_evoluation",
+      SD_METHOD: "differential_evolution",
       SD_NOISE_MAG: 0,
       SD_NUM_LATINCUBE: 1,
       SD_RANGE_MIN_FRAC: 0.5,
@@ -60,3 +62,5 @@ SD_METRICS.extend(SD_TIME_METRICS)
 SD_METRICS.append(SD_STATUS)
 SD_ALL = list(SD_QUALIFIERS)
 SD_ALL.extend(SD_METRICS)
+# Miscellaneous
+VALUE_SEP = "--"

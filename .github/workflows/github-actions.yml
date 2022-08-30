@@ -1,6 +1,7 @@
 name: Continous integration
 
 # Sets environment variables for all jobs
+# Makes the dependent repositories submodules
 env:
   PYTHONPATH: :/home/runner/work/smarte/smarte:/home/runner/work/smarte/smarte/SBMLModel:/home/runner/work/smarte/smarte/fitterpp
 
@@ -13,8 +14,10 @@ jobs:
     steps:
     - name: checkout repository
       uses: actions/checkout@v2
-    - name: install submodules
-      run: git submodule update --init --recursive
+    - name: install SBMLModel
+      run: git submodule add https://github.com/ModelEngineering/SBMLModel.git
+    - name: install fitterpp
+      run: git submodule add https://github.com/ModelEngineering/fitterpp.git
     - name: Set up Python 3.6
       uses: actions/setup-python@v2
       with:

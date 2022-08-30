@@ -67,6 +67,8 @@ class Workunit(ExtendedDict):
             else:
                 new_value = value
             new_workunit[key] = new_value
+        if "?" in new_workunit:
+            import pdb; pdb.set_trace()
         return new_workunit
 
     @classmethod

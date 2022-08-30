@@ -163,12 +163,17 @@ class SBMLFitter():
             self.fit()
         parameter_dct = true_parameters.valuesdict()
         self.fit()
-        value_dct = dict(self.fitter.final_params.valuesdict())
-        error_dct = {n: np.nan if v == 0 else np.log2(v/parameter_dct[n])
-               for n, v in value_dct.items()}
+        if self.fitter.final_params is None:
+            error_dct = {n: np.nan for n in 
+                  true_parameters.valuesdict().keys()}
+        else:
+            value_dct = dict(self.fitter.final_params.valuesdict())
+            error_dct = {n: np.nan if v == 0 else np.log2(v/parameter_dct[n])
+                   for n, v in value_dct.items()}
         # Calculate estimation errors
-        return pd.Series(error_dct, index=value_dct.keys())
+        return pd.Series(error_dct, index=error_dct.keys())
 
+    # TODO: Only handles a single method
     def evaluateFit(self, true_parameters):
         """
         Calculates fitter statistics.
@@ -203,10 +208,13 @@ class SBMLFitter():
         dct[cn.SD_MIN_ERR] = sorted_values[0]
         df_stats = self.fitter.plotPerformance(is_plot=False)
         indices = list(df_stats.index)
-        dct[cn.SD_METHOD] = indices[0]
-        dct[cn.SD_TOT_TIME] = df_stats.loc[indices[0], "tot"]
-        dct[cn.SD_AVG_TIME] = df_stats.loc[indices[0], "avg"]
-        dct[cn.SD_CNT] = df_stats.loc[indices[0], "cnt"]
+        # TODO: generalize to having multiple methods
+        parts = indices[0].split(cn.VALUE_SEP)
+        method = parts[0]
+        dct[cn.SD_METHOD] = method
+        dct[cn.SD_TOT_TIME] = np.sum(df_stats["tot"])
+        dct[cn.SD_AVG_TIME] = np.sum(df_stats["avg"])
+        dct[cn.SD_CNT] = np.sum(df_stats["cnt"])
         dct[cn.SD_NUM_SPECIES] = len(self.model.species_names)
         dct[cn.SD_NUM_PARAMETER] = len(self.model.parameter_names)
         dct[cn.SD_NUM_REACTION] = len(self.model.reaction_names)
