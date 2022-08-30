@@ -193,7 +193,8 @@ class TestSBMLFitter(unittest.TestCase):
             return
         max_fev = 500
         model_num = 7
-        dct = self.evaluateBiomodelFit(model_num, 0, max_fev=max_fev)
+        dct = self.evaluateBiomodelFit(model_num, 0, max_fev=max_fev,
+              method_names=["differential_evolution"])
         self.assertLess(np.abs(dct[cn.SD_CNT] - max_fev), 2)
         
     def testEvaluateBiomodelFit17(self):
