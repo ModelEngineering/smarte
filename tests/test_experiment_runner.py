@@ -10,8 +10,8 @@ import numpy as np
 import unittest
 
 
-IGNORE_TEST = True
-IS_PLOT = True
+IGNORE_TEST = False
+IS_PLOT = False
 TS_INSTANCE = 1
 NUM_MODEL = 10
 WORKUNIT = smt.Workunit(biomodel_num=list(range(1, NUM_MODEL + 1)),
@@ -61,14 +61,20 @@ class TestExperimentRunner(unittest.TestCase):
         #
         with self.assertRaises(FileNotFoundError):
             ts_instance = -1
-            _ = smt.ExperimentRunner.getTimeseries(biomodel_num, noise_mag, ts_instance)
+            _ = smt.ExperimentRunner.getTimeseries(biomodel_num, 
+                  noise_mag, ts_instance)
 
     def testRunWorkunit(self):
         if IGNORE_TEST:
             return
         self.init()
-        df = self.runner.runWorkunit(is_report=IGNORE_TEST, is_recover=False)
-        new_df = smt.ExperimentRunner.readCsv(workunit=WORKUNIT, directory=TEST_DIR)
+        df = self.runner.runWorkunit(is_report=IGNORE_TEST,
+              is_recover=True)
+        #
+        df = self.runner.runWorkunit(is_report=IGNORE_TEST,
+              is_recover=False)
+        new_df = smt.ExperimentRunner.readCsv(workunit=WORKUNIT,
+              directory=TEST_DIR)
         self.assertEqual(len(df), len(new_df))
 
     def testRunWorkunitBug1(self):
@@ -114,7 +120,9 @@ class TestExperimentRunner(unittest.TestCase):
         os.remove(TEST_FILE1)
 
     def testRunWorkunits(self):
-        # TESTING
+        if IGNORE_TEST:
+            return
+        return
         df = smt.ExperimentRunner.runWorkunits()
         
 
