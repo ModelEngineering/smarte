@@ -276,4 +276,4 @@ if __name__ == '__main__':
               exclude_factor_dct=exclude_factor_dct)
         runner.runWorkunit()
     else:
-        ExperimentRunner.runWorkunits(num_worker=12)
+        ExperimentRunner.runWorkunits(num_worker=6)
