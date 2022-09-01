@@ -20,6 +20,7 @@ BIOMODEL_EXCLUDE_PATH = os.path.join(cn.DATA_DIR, "biomodels_exclude.csv")
 BIOMODEL_EXCLUDE_DF = pd.read_csv(BIOMODEL_EXCLUDE_PATH)
 BIOMODEL_EXCLUDES = list(BIOMODEL_EXCLUDE_DF[cn.SD_BIOMODEL_NUM].values)
 DUMMY_RESULT = {"a": 0.5, "b": 0.5}
+EXCLUDE_FACTOR_DCT = dict(biomodel_num=BIOMODEL_EXCLUDES)
 
 
 def wrapper(workunit, exclude_factor_dct):
@@ -44,7 +45,7 @@ class ExperimentRunner(object):
         self.workunit = workunit
         self.exclude_factor_dct = exclude_factor_dct
         if self.exclude_factor_dct is None:
-            self.exclude_factor_dct = {}
+            self.exclude_factor_dct = EXCLUDE_FACTOR_DCT
         self.directory = directory
         self.out_path = self.makePath(self.workunit, self.directory)
         self.factors = self.workunit.calcMultivaluedFactors()
@@ -237,7 +238,6 @@ class ExperimentRunner(object):
         lazy_results = []
         try:
             #
-            exclude_factor_dct = dict(biomodel_num=BIOMODEL_EXCLUDES)
             with open(path, "r") as fd:
                 lines = fd.readlines()
             #
@@ -255,8 +255,7 @@ class ExperimentRunner(object):
                     raise ValueError("Invalid workunit string: %s"
                           % new_line)
                 # Assemble the list of computations
-                lazy_result = dask.delayed(wrapper)(workunit,
-                      exclude_factor_dct)
+                lazy_result = dask.delayed(wrapper)(workunit)
                 lazy_results.append(lazy_result)
             #
         except Exception as exp:
@@ -268,12 +267,11 @@ class ExperimentRunner(object):
    
 
 if __name__ == '__main__':
-    if False:
-        if IGNORE_TEST:
-            return
-        a_workunit = smt.Workunit(noise_mag=0.1)
-        runner = smt.ExperimentRunner(a_workunit,
-              exclude_factor_dct=exclude_factor_dct)
+    if True:
+        workunit_str = "biomodel_num--all__columns_deleted--0__max_fev--10000__method--differential_evolution__noise_mag--0.1__num_latincube--1__range_max_frac--2.0__range_min_frac--0.5__ts_instance--all"
+        a_workunit = smt.Workunit.getFromStr(workunit_str)
+        import pdb; pdb.set_trace()
+        runner = smt.ExperimentRunner(a_workunit)
         runner.runWorkunit()
     else:
-        ExperimentRunner.runWorkunits(num_worker=6)
+        ExperimentRunner.runWorkunits(num_worker=12)
