@@ -7,6 +7,6 @@ do
     echo "*** New iteration at: `date` ***"
     echo ""
     python smarte/experiment_runner.py  &
-    sleep 7200
+    sleep 1800
     bash kill.sh
 done
