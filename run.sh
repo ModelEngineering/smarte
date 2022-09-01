@@ -1,5 +1,5 @@
 #!/bin/bash
-# Runs the experiments for 2hr intervals
+# Runs the experiments for 30min intervals
 # Must be in smt virtual environment and have done setup_run.sh
 while :
 do
