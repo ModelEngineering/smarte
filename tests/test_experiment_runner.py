@@ -30,14 +30,22 @@ class TestExperimentRunner(unittest.TestCase):
     def init(self):
         self.remove()
         self.runner = smt.ExperimentRunner(WORKUNIT, directory=TEST_DIR)
+        self.remove()
 
     def tearDown(self):
+        self.remove()
         self.remove()
 
     def remove(self):
         for ffile in REMOVE_FILES:
             if os.path.isfile(ffile):
                 os.remove(ffile)
+        #
+        ffiles = os.listdir(TEST_DIR)
+        for ffile in ffiles:
+            if cn.SD_BIOMODEL_NUM in ffile:
+                path = os.path.join(TEST_DIR, ffile)
+                os.remove(path)
 
     def testMakePath(self):
         if IGNORE_TEST:
