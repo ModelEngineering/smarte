@@ -131,7 +131,7 @@ class ExperimentRunner(object):
                           biomodel_num, observed_ts,
                           range_min_frac=condition[cn.SD_RANGE_MIN_FRAC],
                           range_max_frac=condition[cn.SD_RANGE_MAX_FRAC],
-                          num_latincube=condition[cn.SD_NUM_LATINCUBE],
+                          latincube_idx=condition[cn.SD_LATINCUBE_IDX],
                           method_names=condition[cn.SD_METHOD],
                           max_fev=condition[cn.SD_MAX_FEV],
                           )
@@ -267,7 +267,7 @@ class ExperimentRunner(object):
 
 if __name__ == '__main__':
     if False:
-        workunit_str = "biomodel_num--all__columns_deleted--0__max_fev--10000__method--differential_evolution__noise_mag--0.1__num_latincube--1__range_max_frac--2.0__range_min_frac--0.5__ts_instance--all"
+        workunit_str = "biomodel_num--all__columns_deleted--0__max_fev--10000__method--differential_evolution__noise_mag--0.1__latincube_idx--1__range_max_frac--2.0__range_min_frac--0.5__ts_instance--all"
         a_workunit = smt.Workunit.getFromStr(workunit_str)
         import pdb; pdb.set_trace()
         runner = smt.ExperimentRunner(a_workunit)

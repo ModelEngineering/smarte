@@ -173,7 +173,7 @@ class SBMLFitter():
         # Calculate estimation errors
         return pd.Series(error_dct, index=error_dct.keys())
 
-    # TODO: Only handles a single method
+    # FIXME: Only handles a single method
     def evaluateFit(self, true_parameters):
         """
         Calculates fitter statistics.
@@ -211,6 +211,7 @@ class SBMLFitter():
         # TODO: generalize to having multiple methods
         parts = indices[0].split(cn.VALUE_SEP)
         method = parts[0]
+        dct[cn.SD_RSSQ] = self.fitter.rssq
         dct[cn.SD_METHOD] = method
         dct[cn.SD_TOT_TIME] = np.sum(df_stats["tot"])
         dct[cn.SD_AVG_TIME] = np.sum(df_stats["avg"])

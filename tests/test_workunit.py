@@ -1,7 +1,7 @@
 from smarte.experiment_condition import ExperimentCondition
 import smarte as smt
 import smarte.constants as cn
-from smarte.extended_dict import VALUE_SEP, KEY_VALUE_SEP
+from smarte.extended_dict import VALUE_SEP, KEY_VALUE_SEP, ExtendedDict
 
 import os
 import pandas as pd
@@ -64,21 +64,6 @@ class TestWorkunit(unittest.TestCase):
         new_workunit = self.workunit.removeExpansions()
         for key in [cn.SD_BIOMODEL_NUM, cn.SD_TS_INSTANCE]:
             self.assertEqual(new_workunit[key][0], cn.SD_CONDITION_VALUE_ALL)
-
-    def testBugBadTypeHandling(self):
-        if IGNORE_TEST:
-            return
-        path = os.path.join(cn.EXPERIMENT_DIR, "workunits.txt")
-        with open(path, "r") as fd:
-            workunit_strs = fd.readlines()
-        workunit_strs = [w for w in workunit_strs]
-        workunits = [smt.Workunit.getFromStr(w) for w in workunit_strs]
-        agg_workunits = self.workunit.makeEmpty()
-        for workunit in workunits[1:]:
-            dct = workunit.removeExpansions()
-            agg_workunits.extend(dct)
-        self.assertGreater(len(agg_workunits[cn.SD_NUM_LATINCUBE]), 1)
-        self.assertEqual(len(agg_workunits[cn.SD_BIOMODEL_NUM]), 1)
         
 
 if __name__ == '__main__':
