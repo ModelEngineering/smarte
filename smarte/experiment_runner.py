@@ -5,8 +5,7 @@ from smarte import constants as cn
 import SBMLModel as mdl
 
 import dask
-from dask.distributed import LocalCluster, Client
-import numpy as np
+from dask.distributed import Client
 import os
 import pandas as pd
 
@@ -31,7 +30,8 @@ def wrapper(workunit):
 
 class ExperimentRunner(object):
 
-    def __init__(self, workunit, directory=cn.EXPERIMENT_DIR, exclude_factor_dct=None):
+    def __init__(self, workunit, directory=cn.EXPERIMENT_DIR,
+          exclude_factor_dct=None, out_path=None):
         """
         Parameters
         ----------
@@ -40,13 +40,16 @@ class ExperimentRunner(object):
         exclude_factor_dct: dict (any condition with a factor value is excluded)
              key: factor
              value: list-levels
+        out_path: str (path where results are stored)
         """
         self.workunit = workunit
         self.exclude_factor_dct = exclude_factor_dct
         if self.exclude_factor_dct is None:
             self.exclude_factor_dct = EXCLUDE_FACTOR_DCT
         self.directory = directory
-        self.out_path = self.makePath(self.workunit, self.directory)
+        self.out_path = out_path
+        if self.out_path is None:
+            self.out_path = self.makePath(self.workunit, self.directory)
         self.factors = self.workunit.calcMultivaluedFactors()
 
     def _writeMessage(self, condition, status, is_report):
@@ -88,24 +91,22 @@ class ExperimentRunner(object):
             columns: cn.SD_ALL
             index: biomodel_num
         """
-        # Handle restart
-        success = False
+        # Check for a restart
+        results = smt.ExperimentResult.makeAggregateResult()
+        condition_strs = []
         if os.path.isfile(self.out_path) and is_recover:
             df = self.readCsv(self.out_path)
             if df is not None:
                 results = smt.ExperimentResult.makeAggregateResult(df)
                 conditions = smt.ExperimentCondition.getFromDF(df)
                 condition_strs = [str(c) for c in conditions]
-                success = True
-        if not success:
-            results = smt.ExperimentResult.makeAggregateResult()
-            condition_strs = []
-        # Iterate across the models
+        # Find the subset of conditions to process
+        conditions = []
         for condition in self.workunit.iterator:
-            # See if condition is to be processed
+            # See if already processed
             if str(condition) in condition_strs:
                 continue
-            # Excluded?
+            # Check for excluded factor value
             is_skip = False
             for factor in self.exclude_factor_dct.keys():
                 if condition[factor] in self.exclude_factor_dct[factor]:
@@ -113,7 +114,31 @@ class ExperimentRunner(object):
                     break
             if is_skip:
                 continue
-            # Process the condition
+            conditions.append(condition)
+        #
+        return self.runConditions(conditions, results=results, is_report=is_report)
+
+    def runConditions(self, conditions, results=None, is_report=True):
+        """
+        Runs experiment for all of BioModels. Has recovery capability
+        where continues with an existing CSV file.
+
+        Parameters
+        ----------
+        conditions: iterable-condition
+        results: list-ExperimentalResult
+        is_recover: bool (recover existing results if they exist)
+        is_report: bool (report progress)
+
+        Returns
+        -------
+        DataFrame
+            columns: cn.SD_ALL
+            index: biomodel_num
+        """
+        if results is None:
+            results = []
+        for condition in conditions:
             biomodel_num = condition[cn.SD_BIOMODEL_NUM]
             result = smt.ExperimentResult(**condition)
             try:
@@ -227,7 +252,7 @@ class ExperimentRunner(object):
         Parameters
         ----------
         path: str (path to file of workunits in string representation)
-        
+
         Returns
         -------
         """
@@ -259,18 +284,16 @@ class ExperimentRunner(object):
             #
         except Exception as exp:
             print(exp)
-            num_result = 0
         final_result = dask.compute(*lazy_results)  # trigger computation
         client.close()
         return final_result
-   
+
 
 if __name__ == '__main__':
     if False:
         workunit_str = "biomodel_num--all__columns_deleted--0__max_fev--10000__method--differential_evolution__noise_mag--0.1__latincube_idx--1__range_max_frac--2.0__range_min_frac--0.5__ts_instance--all"
         a_workunit = smt.Workunit.getFromStr(workunit_str)
-        import pdb; pdb.set_trace()
-        runner = smt.ExperimentRunner(a_workunit)
-        runner.runWorkunit()
+        this_runner = smt.ExperimentRunner(a_workunit)
+        this_runner.runWorkunit()
     else:
         ExperimentRunner.runWorkunits(num_worker=12)

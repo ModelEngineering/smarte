@@ -1,6 +1,7 @@
+from smarte.extended_dict import ExtendedDict, VALUE_SEP, LIST_BREAK, KEY_VALUE_SEP
+
 import unittest
 
-from smarte.extended_dict import ExtendedDict, KEY_VALUE_SEP, VALUE_SEP
 
 IGNORE_TEST = False
 IS_PLOT = False
@@ -82,6 +83,12 @@ class TestExtendedDict(unittest.TestCase):
         stg = str(dct)
         new_dct = ExtendedDict.getFromStr(stg)
         self.assertTrue(dct.equals(new_dct))
+        #
+        dct = ExtendedDict({"a": [100, 200.2, 300, 20, 2, 6], "b": "testing", "c": 1.04})
+        stg = str(dct)
+        self.assertTrue(LIST_BREAK in stg)
+        with self.assertRaises(ValueError):
+            _ = ExtendedDict.getFromStr(stg)
 
 
 if __name__ == '__main__':
