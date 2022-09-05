@@ -2,6 +2,7 @@
 
 import smarte as smt
 from smarte import constants as cn
+from smarte.experiment_result_collection import ExperimentResultCollection
 import SBMLModel as mdl
 
 import dask
@@ -75,37 +76,48 @@ class ExperimentRunner(object):
         filename = "%s.csv" % str(workunit)
         return os.path.join(directory, filename)
 
-    def runWorkunit(self, is_recover=True, is_report=True):
+    def recover(self, is_recover):
         """
-        Runs experiment for all of BioModels. Has recovery capability
-        where continues with an existing CSV file.
+        Recovers results if they exist.
 
         Parameters
         ----------
         is_recover: bool (recover existing results if they exist)
-        is_report: bool (report progress)
 
         Returns
         -------
-        DataFrame
-            columns: cn.SD_ALL
-            index: biomodel_num
+        ExperimentResultCollection
         """
-        # Check for a restart
-        results = smt.ExperimentResult.makeAggregateResult()
-        condition_strs = []
-        if os.path.isfile(self.out_path) and is_recover:
-            df = self.readCsv(self.out_path)
-            if df is not None:
-                results = smt.ExperimentResult.makeAggregateResult(df)
-                conditions = smt.ExperimentCondition.getFromDF(df)
-                condition_strs = [str(c) for c in conditions]
+        result_collection = ExperimentResultCollection()
+        if is_recover:
+            if os.path.isfile(self.out_path):
+                df = self.readCsv(self.out_path)
+                if df is not None:
+                    for name in cn.SD_ALL:
+                        if not name in list(df.columns):
+                            raise RuntimeError(
+                                  "Missing attribute in result: %s" % name)
+                    result_collection = smt.ExperimentResultCollection(df=df)
+        return result_collection
+
+    def getWorkunitInfo(self, is_recover=True):
+        """
+        Runs experiment for a workunit. Handles recovery of an interrupted run.
+
+        Parameters
+        ----------
+        is_recover: bool (recover existing results if they exist)
+
+        Returns
+        -------
+        list-ExperimentCondition (conditions to prcoess)
+        ExperimentResultCollection (experiments already procesed)
+        """
+        # Handle a restart by getting conditions that have been processed
+        result_collection = self.recover(is_recover)
         # Find the subset of conditions to process
         conditions = []
         for condition in self.workunit.iterator:
-            # See if already processed
-            if str(condition) in condition_strs:
-                continue
             # Check for excluded factor value
             is_skip = False
             for factor in self.exclude_factor_dct.keys():
@@ -116,17 +128,14 @@ class ExperimentRunner(object):
                 continue
             conditions.append(condition)
         #
-        return self.runConditions(conditions, results=results, is_report=is_report)
+        return conditions, result_collection
 
-    def runConditions(self, conditions, results=None, is_report=True):
+    def runWorkunit(self, is_recover=True, is_report=True):
         """
-        Runs experiment for all of BioModels. Has recovery capability
-        where continues with an existing CSV file.
+        Runs experiment for a workunit. Handles recovery of an interrupted run.
 
         Parameters
         ----------
-        conditions: iterable-condition
-        results: list-ExperimentalResult
         is_recover: bool (recover existing results if they exist)
         is_report: bool (report progress)
 
@@ -136,9 +145,37 @@ class ExperimentRunner(object):
             columns: cn.SD_ALL
             index: biomodel_num
         """
-        if results is None:
-            results = []
+        conditions, result_collection = self.getWorkunitInfo(is_recover=True)
+        return self.runConditions(conditions, result_collection=result_collection,
+              is_report=is_report)
+
+    def runConditions(self, conditions, result_collection=None, is_report=True):
+        """
+        Runs experiment for all of BioModels. Has recovery capability
+        where continues with an existing CSV file.
+
+        Parameters
+        ----------
+        conditions: list-condition (experiments to run)
+        result_collection: ExperimentalResultCollection (completed experiments)
+        is_recover: bool (recover existing results if they exist)
+        is_report: bool (report progress)
+
+        Returns
+        -------
+        DataFrame
+            columns: cn.SD_ALL
+            index: biomodel_num
+        """
+        result_conditions = smt.ExperimentCondition.getFromResultCollection(
+              result_collection)
+        condition_strs = [str(c) for c in result_conditions]
+        df = self.writeResults(result_collection)
         for condition in conditions:
+            # Check if already processed
+            if str(condition) in condition_strs:
+                continue
+            # Setup to run the experiment
             biomodel_num = condition[cn.SD_BIOMODEL_NUM]
             result = smt.ExperimentResult(**condition)
             try:
@@ -164,9 +201,9 @@ class ExperimentRunner(object):
                 except (ValueError, RuntimeError) as exp:
                     result[cn.SD_STATUS] = str(exp)
                 # Accumulate results
-                results.append(result)
+                result_collection.append(result)
             # Save the results
-            df = self.writeResults(results)
+            df = self.writeResults(result_collection)
             #
             self._writeMessage(condition, result[cn.SD_STATUS], is_report=is_report)
         # Handle the missing models
@@ -216,7 +253,7 @@ class ExperimentRunner(object):
         if path is None:
             path = cls.makePath(workunit, directory)
         try:
-            df = pd.read_csv(path, index_col=cn.SD_BIOMODEL_NUM)
+            df = pd.read_csv(path)
         except Exception:
             return None
         for column in df.columns:
@@ -224,13 +261,13 @@ class ExperimentRunner(object):
                 del df[column]
         return df
 
-    def writeResults(self, results, path=None):
+    def writeResults(self, result_collection, path=None):
         """
         Writes the results to the designated file.
 
         Parameters
         ----------
-        results: list-ExperimentResult
+        result_collection: ExperimentResultCollection
 
         Returns
         -------
@@ -238,9 +275,8 @@ class ExperimentRunner(object):
         """
         if path is None:
             path = self.out_path
-        df = pd.DataFrame(results)
+        df = pd.DataFrame(result_collection)
         final_df = df.sort_values(cn.SD_BIOMODEL_NUM)
-        final_df = final_df.set_index(cn.SD_BIOMODEL_NUM)
         final_df.to_csv(path, index=True)
         return final_df
 

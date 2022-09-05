@@ -1,5 +1,6 @@
 
 from smarte.experiment_condition import ExperimentCondition
+from smarte.experiment_result_collection import ExperimentResultCollection
 from smarte.extended_dict import KEY_VALUE_SEP, VALUE_SEP
 import smarte.constants as cn
 
@@ -44,6 +45,18 @@ class TestExperimentCondition(unittest.TestCase):
         conditions = ExperimentCondition.getFromDF(df)
         trues = [isinstance(c, ExperimentCondition) for c in conditions]
         self.assertTrue(all(trues))
+
+    def testGetFromResultCollection(self):
+        if IGNORE_TEST:
+            return
+        df = pd.read_csv(TEST_FILE)
+        result_collection = ExperimentResultCollection(df=df)
+        conditions = ExperimentCondition.getFromResultCollection(result_collection)
+        trues = [isinstance(c, ExperimentCondition) for c in conditions]
+        self.assertTrue(all(trues))
+        self.assertEqual(len(df), len(conditions))
+        for condition in conditions:
+            self.assertEqual(len(condition), len(cn.SD_CONDITIONS))
         
 
 if __name__ == '__main__':

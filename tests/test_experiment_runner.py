@@ -17,10 +17,10 @@ NUM_MODEL = 10
 WORKUNIT = smt.Workunit(biomodel_num=list(range(1, NUM_MODEL + 1)),
       ts_instance=TS_INSTANCE, noise_mag=0.1)
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+TEST_FILE = os.path.join(TEST_DIR, "test_experiment_runner.csv")
+TEST_FILE1 = os.path.join(TEST_DIR, "test_experiment_runner1.csv")
 REMOVE_FILES = []
-TEST_FILE = os.path.join(TEST_DIR, "test_experiment_runner.csv")        
-TEST_FILE1 = os.path.join(TEST_DIR, "test_experiment_runner1.csv")        
-        
+
 
 #############################
 # Tests
@@ -69,18 +69,25 @@ class TestExperimentRunner(unittest.TestCase):
         #
         with self.assertRaises(FileNotFoundError):
             ts_instance = -1
-            _ = smt.ExperimentRunner.getTimeseries(biomodel_num, 
+            _ = smt.ExperimentRunner.getTimeseries(biomodel_num,
                   noise_mag, ts_instance)
 
-    def testRunWorkunit(self):
+    def testGetWorkunitInfo(self):
         if IGNORE_TEST:
             return
         self.init()
         df = self.runner.runWorkunit(is_report=IGNORE_TEST,
               is_recover=True)
-        #
-        df = self.runner.runWorkunit(is_report=IGNORE_TEST,
-              is_recover=False)
+        conditions, result_collection = self.runner.getWorkunitInfo(is_recover=False)
+        self.assertEqual(len(result_collection[cn.SD_BIOMODEL_NUM]), 0)
+        conditions, result_collection = self.runner.getWorkunitInfo(is_recover=True)
+        self.assertGreater(len(result_collection[cn.SD_BIOMODEL_NUM]), 1)
+
+    def testRunWorkunit(self):
+        if IGNORE_TEST:
+            return
+        self.init()
+        df = self.runner.runWorkunit(is_report=IGNORE_TEST)
         new_df = smt.ExperimentRunner.readCsv(workunit=WORKUNIT,
               directory=TEST_DIR)
         self.assertEqual(len(df), len(new_df))
@@ -95,7 +102,7 @@ class TestExperimentRunner(unittest.TestCase):
         df = self.runner.runWorkunit(is_report=IGNORE_TEST, is_recover=False)
         self.assertGreater(len(df), 0)
         self.assertTrue(isinstance(df, pd.DataFrame))
-        
+
 
     def testReadCsv(self):
         if IGNORE_TEST:
@@ -132,7 +139,7 @@ class TestExperimentRunner(unittest.TestCase):
             return
         return
         df = smt.ExperimentRunner.runWorkunits()
-        
+
 
 if __name__ == '__main__':
   unittest.main()
