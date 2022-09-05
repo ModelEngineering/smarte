@@ -16,7 +16,7 @@ IS_PLOT = False
 class TestExperimentResult(unittest.TestCase):
 
     def setUp(self):
-        self.condition = ExperimentCondition()
+        self.condition = ExperimentCondition(biomodel_num=[1, 3])
         self.result = ExperimentResult(**self.condition)
 
     def testGet(self):

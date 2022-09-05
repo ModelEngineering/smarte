@@ -1,10 +1,14 @@
 """Runs experiments for cn.SD_CONTROLLED_FACTORS"""
+"""
+getParitionedWorkunitInfo(num_partition): returns list of pairs of WorkunitInfo
+"""
 
 import smarte as smt
 from smarte import constants as cn
 from smarte.experiment_result_collection import ExperimentResultCollection
 import SBMLModel as mdl
 
+import collections
 import dask
 from dask.distributed import Client
 import os
@@ -21,6 +25,10 @@ BIOMODEL_EXCLUDE_DF = pd.read_csv(BIOMODEL_EXCLUDE_PATH)
 BIOMODEL_EXCLUDES = list(BIOMODEL_EXCLUDE_DF[cn.SD_BIOMODEL_NUM].values)
 DUMMY_RESULT = {"a": 0.5, "b": 0.5}
 EXCLUDE_FACTOR_DCT = dict(biomodel_num=BIOMODEL_EXCLUDES)
+
+
+WorkunitInfo = collections.namedtuple("WorkunitInfo",
+      "conditions result_collection")
 
 
 def wrapper(workunit):
@@ -110,8 +118,7 @@ class ExperimentRunner(object):
 
         Returns
         -------
-        list-ExperimentCondition (conditions to prcoess)
-        ExperimentResultCollection (experiments already procesed)
+        WorkunitInfo
         """
         # Handle a restart by getting conditions that have been processed
         result_collection = self.recover(is_recover)
@@ -128,7 +135,7 @@ class ExperimentRunner(object):
                 continue
             conditions.append(condition)
         #
-        return conditions, result_collection
+        return WorkunitInfo(conditions=conditions, result_collection=result_collection)
 
     def runWorkunit(self, is_recover=True, is_report=True):
         """
@@ -145,8 +152,10 @@ class ExperimentRunner(object):
             columns: cn.SD_ALL
             index: biomodel_num
         """
-        conditions, result_collection = self.getWorkunitInfo(is_recover=True)
-        return self.runConditions(conditions, result_collection=result_collection,
+        workunit_info = self.getWorkunitInfo(is_recover=True)
+        return self.runConditions(
+              workunit_info.conditions, 
+              result_collection=workunit_info.result_collection,
               is_report=is_report)
 
     def runConditions(self, conditions, result_collection=None, is_report=True):
