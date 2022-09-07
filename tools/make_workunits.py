@@ -9,10 +9,10 @@ import os
 workunits = []
 for max_fev in [1000, 10000]:
     for method in ["differential_evolution", "leastsq"]:
-        for num_latincube in [1, 2, 4, 8]:
+        for latincube_idx in range(1, 11):
             for noise_mag in [0.1, 0.2]:
                 workunit = smt.Workunit(method=method,
-                      num_latincube=num_latincube,
+                      latincube_idx=latincube_idx,
                       noise_mag=noise_mag,
                       max_fev=max_fev)
                 workunits.append(str(workunit))

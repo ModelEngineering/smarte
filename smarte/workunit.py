@@ -70,16 +70,3 @@ class Workunit(ExtendedDict):
         if "?" in new_workunit:
             import pdb; pdb.set_trace()
         return new_workunit
-
-    @classmethod
-    def makeEmpty(cls):
-        return cls(biomodel_num=[],
-          method=[],
-          noise_mag=[],
-          range_min_frac=[],
-          range_max_frac=[],
-          num_latincube=[],
-          columns_deleted=[],
-          max_fev=[],
-          ts_instance=[],
-          )

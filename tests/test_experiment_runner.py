@@ -30,14 +30,22 @@ class TestExperimentRunner(unittest.TestCase):
     def init(self):
         self.remove()
         self.runner = smt.ExperimentRunner(WORKUNIT, directory=TEST_DIR)
+        self.remove()
 
     def tearDown(self):
+        self.remove()
         self.remove()
 
     def remove(self):
         for ffile in REMOVE_FILES:
             if os.path.isfile(ffile):
                 os.remove(ffile)
+        #
+        ffiles = os.listdir(TEST_DIR)
+        for ffile in ffiles:
+            if cn.SD_BIOMODEL_NUM in ffile:
+                path = os.path.join(TEST_DIR, ffile)
+                os.remove(path)
 
     def testMakePath(self):
         if IGNORE_TEST:
@@ -81,7 +89,7 @@ class TestExperimentRunner(unittest.TestCase):
         if IGNORE_TEST:
             return
         self.init()
-        stg = "biomodel_num--1__columns_deleted--0__max_fev--10000__method--leastsq__noise_mag--0.1__num_latincube--2__range_max_frac--2.0__range_min_frac--0.5__ts_instance--1"
+        stg = "biomodel_num--1__columns_deleted--0__max_fev--10000__method--leastsq__noise_mag--0.1__latincube_idx--2__range_max_frac--2.0__range_min_frac--0.5__ts_instance--1"
         workunit = smt.Workunit.getFromStr(stg)
         self.runner = smt.ExperimentRunner(workunit, directory=TEST_DIR)
         df = self.runner.runWorkunit(is_report=IGNORE_TEST, is_recover=False)
