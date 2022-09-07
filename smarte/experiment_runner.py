@@ -1,6 +1,9 @@
 """Runs experiments for cn.SD_CONTROLLED_FACTORS"""
 """
-getParitionedWorkunitInfo(num_partition): returns list of pairs of WorkunitInfo
+1.  WorkunitInfo
+    Concatenate
+    clean: remove conditions that are in result
+2. Figure out where the history files are for doing fine grain scheduling
 """
 
 import smarte as smt
@@ -11,6 +14,7 @@ import SBMLModel as mdl
 import collections
 import dask
 from dask.distributed import Client
+import numpy as np
 import os
 import pandas as pd
 
@@ -25,13 +29,19 @@ BIOMODEL_EXCLUDE_DF = pd.read_csv(BIOMODEL_EXCLUDE_PATH)
 BIOMODEL_EXCLUDES = list(BIOMODEL_EXCLUDE_DF[cn.SD_BIOMODEL_NUM].values)
 DUMMY_RESULT = {"a": 0.5, "b": 0.5}
 EXCLUDE_FACTOR_DCT = dict(biomodel_num=BIOMODEL_EXCLUDES)
+FINE_GRAIN_RESULT_PAT = "fine_grain_result-%d.csv"
 
 
 WorkunitInfo = collections.namedtuple("WorkunitInfo",
       "conditions result_collection")
 
 
-def wrapper(workunit):
+def workunitRunnerWrapper(workunit):
+    runner = smt.ExperimentRunner(workunit)
+    df = runner.runWorkunit()
+    return df
+
+def conditionRunnerWrapper(conditions, result_collection):
     runner = smt.ExperimentRunner(workunit)
     df = runner.runWorkunit()
     return df
@@ -84,22 +94,24 @@ class ExperimentRunner(object):
         filename = "%s.csv" % str(workunit)
         return os.path.join(directory, filename)
 
-    def recover(self, is_recover):
+    @classmethod
+    def recover(cls, is_recover, path):
         """
         Recovers results if they exist.
 
         Parameters
         ----------
         is_recover: bool (recover existing results if they exist)
+        path: str (path to file to recover from)
 
         Returns
         -------
         ExperimentResultCollection
         """
         result_collection = ExperimentResultCollection()
-        if is_recover:
-            if os.path.isfile(self.out_path):
-                df = self.readCsv(self.out_path)
+        if is_recover and (path is not None):
+            if os.path.isfile(path):
+                df = cls.readCsv(path)
                 if df is not None:
                     for name in cn.SD_ALL:
                         if not name in list(df.columns):
@@ -108,9 +120,46 @@ class ExperimentRunner(object):
                     result_collection = smt.ExperimentResultCollection(df=df)
         return result_collection
 
+    @classmethod
+    def getWorkunitInfoCls(cls, workunit, path=None, is_recover=True,
+          exclude_factor_dct=EXCLUDE_FACTOR_DCT):
+        """
+        Creates the information needed to run experiments for a workunit.
+        Eliminates conditions that have been processed already.
+
+        Parameters
+        ----------
+        workunit: ExperimentWorkunit
+        path: str (path to recover previous results)
+        is_recover: bool (recover existing results if they exist)
+        exclude_factor_dct: dictionary of factor values to exclude
+
+        Returns
+        -------
+        WorkunitInfo
+        """
+        # Handle a restart by getting conditions that have been processed
+        result_collection = cls.recover(is_recover, path)
+        condition_strs = [str(c) for c in result_conditions]
+        conditions = []
+        for condition in workunit.iterator:
+            if str(condition) in condition_strs:
+                continue
+            # Check for excluded factor value
+            is_skip = False
+            for factor in exclude_factor_dct.keys():
+                if condition[factor] in exclude_factor_dct[factor]:
+                    is_skip = True
+                    break
+            if is_skip:
+                continue
+            conditions.append(condition)
+        #
+        return WorkunitInfo(conditions=conditions, result_collection=result_collection)
+
     def getWorkunitInfo(self, is_recover=True):
         """
-        Runs experiment for a workunit. Handles recovery of an interrupted run.
+        Creates the information needed to run experiments for a workunit.
 
         Parameters
         ----------
@@ -120,22 +169,49 @@ class ExperimentRunner(object):
         -------
         WorkunitInfo
         """
-        # Handle a restart by getting conditions that have been processed
-        result_collection = self.recover(is_recover)
-        # Find the subset of conditions to process
-        conditions = []
-        for condition in self.workunit.iterator:
-            # Check for excluded factor value
-            is_skip = False
-            for factor in self.exclude_factor_dct.keys():
-                if condition[factor] in self.exclude_factor_dct[factor]:
-                    is_skip = True
-                    break
-            if is_skip:
-                continue
-            conditions.append(condition)
-        #
-        return WorkunitInfo(conditions=conditions, result_collection=result_collection)
+        return self.getWorkunitInfoCls(self.workunit, path=self.out_path,
+              is_recover=is_recover, exclude_factor_dct=self.exclude_factor_dct)
+
+    @classmethod
+    def iteratePartitionedConditions(cls, paths, workunits, num_partition=1, is_recover=True):
+        """
+        Iterator that provides evenly divided partitions of WorkunitInfo. Among the
+        number of partitions.
+
+        Parameters
+        ----------
+        paths: list-str (paths from which information is obtained)
+        num_partition: int (number of partitions to create for parallel exeriments)
+        is_recover: bool (recover existing results if they exist)
+
+        Returns
+        -------
+        list-WorkunitInfo
+        """
+        # Merge the results
+        result_collections = [cls.recover(is_recover=is_recover, path=p) for p in paths]
+        all_result_collection = smt.ExperimentResultCollection()
+        [all_result_collection.extend(c) for c in result_collections]
+        completed_conditions = smt.ExperimentCondition.getFromResultCollection(result_collection)
+        completed_condition_strs = [str(c) for c in completed_conditions]
+        # Find the conditions yet to be done
+        workunit_infos = [cls.getWorkunitInfoCls(cls, w, is_recover=False) for w in workunits]
+        all_conditions = []
+        [all_conditions.extend(w.conditions) for w in workunit_infos]
+        selected_conditions = [c for c in all_conditions if not str(c) in completed_condition_strs]
+        # Partition the work
+        is_first = True
+        size = len(selected_conditions)
+        for idx in range(num_partition):
+            conditions = []
+            for pos in range(idx, size, num_partition):
+                conditions.append(selected_conditions[pos])
+            if is_first:
+                workunit_info = WorkunitInfo(conditions=conditions, result_collection=all_result_collection)
+                is_first = False
+            else:
+                workunit_info = WorkunitInfo(conditions=conditions, result_collection=[])
+            yield workunit_info
 
     def runWorkunit(self, is_recover=True, is_report=True):
         """
@@ -158,10 +234,12 @@ class ExperimentRunner(object):
               result_collection=workunit_info.result_collection,
               is_report=is_report)
 
+    # TODO: use workunit_info instead of conditions, result_collection?
     def runConditions(self, conditions, result_collection=None, is_report=True):
         """
         Runs experiment for all of BioModels. Has recovery capability
         where continues with an existing CSV file.
+        Assumes that conditions are not in result_collection.
 
         Parameters
         ----------
@@ -176,14 +254,9 @@ class ExperimentRunner(object):
             columns: cn.SD_ALL
             index: biomodel_num
         """
-        result_conditions = smt.ExperimentCondition.getFromResultCollection(
-              result_collection)
-        condition_strs = [str(c) for c in result_conditions]
-        df = self.writeResults(result_collection)
+        if result_collection is None:
+            result_collection = smt.ExperimentResultCollection()
         for condition in conditions:
-            # Check if already processed
-            if str(condition) in condition_strs:
-                continue
             # Setup to run the experiment
             biomodel_num = condition[cn.SD_BIOMODEL_NUM]
             result = smt.ExperimentResult(**condition)
@@ -289,14 +362,43 @@ class ExperimentRunner(object):
         final_df.to_csv(path, index=True)
         return final_df
 
+    @staticmethod
+    def getWorkunitsFromFile(path):
+        """
+        Retrieves the workunits in a file.
+
+        Parameters
+        ----------
+        path: str (path to file of workunits in string representation)
+        
+        Returns
+        -------
+        list-workunit
+        """
+        with open(path, "r") as fd:
+            lines = fd.readlines()
+        workunit_strs = [l.strip() for l in lines]
+        #
+        workunits = []
+        for workunit_str in workunit_strs:
+            try:
+                workunit = smt.Workunit.getFromStr(workunit_str)
+            except:
+                raise ValueError("Invalid workunit string: %s"
+                      % workunit_str)
+            workunits.append(workunit)
+        return workunits
+
     @classmethod
-    def runWorkunits(cls, num_worker=4, path=cn.WORKUNITS_FILE):
+    def runWorkunits(cls, num_worker=4, path=cn.WORKUNITS_FILE,
+          is_coarse_schedule=True):
         """
         Runs workunits in parallel.
 
         Parameters
         ----------
         path: str (path to file of workunits in string representation)
+        is_coarse_schedule: bool (schedule at the granularity of workunit)
 
         Returns
         -------
@@ -305,30 +407,33 @@ class ExperimentRunner(object):
         client = Client(n_workers=num_worker, memory_limit='3GB',
                threads_per_worker=1)
         lazy_results = []
-        try:
-            #
-            with open(path, "r") as fd:
-                lines = fd.readlines()
-            #
-            lazy_results = []
-            for line in lines:
-                # Remove trailing newline
-                new_line = line.strip()
+        workunits = getWorkunitsFromFile(path)
+        # Schedule the work
+        # TODO: Finish
+        if not is_coarse_schedule:
+            # Schedule at the granularity of experiment
+            runner = ExperimentRunner(workunit)
+            for workunit_info in runner.iterateWorkunitInfo(num_worker):
+                lazy_result = dask.delayed(conditionRunnerWrapper)(
+                      workunit_info.conditions, workunit_info.result_collection)
+                lazy_results.append(lazy_result)
+        else:
+            # Distribute work units
+            for workunit_str in workunit_strs:
                 # Handle comments
-                if new_line[0]  == "#":
+                if workunit_str[0]  == "#":
                     continue
                 # Extract the workunit
                 try:
-                    workunit = smt.Workunit.getFromStr(new_line)
+                    workunit = smt.Workunit.getFromStr(workunit_str)
                 except:
                     raise ValueError("Invalid workunit string: %s"
-                          % new_line)
+                          % workunt_str)
                 # Assemble the list of computations
-                lazy_result = dask.delayed(wrapper)(workunit)
+                lazy_result = dask.delayed(workunitRunnerWrapper)(workunit)
                 lazy_results.append(lazy_result)
-            #
-        except Exception as exp:
-            print(exp)
+        #
+        print(exp)
         final_result = dask.compute(*lazy_results)  # trigger computation
         client.close()
         return final_result

@@ -17,7 +17,7 @@ NUM_MODEL = 10
 WORKUNIT = smt.Workunit(biomodel_num=list(range(1, NUM_MODEL + 1)),
       ts_instance=TS_INSTANCE, noise_mag=0.1)
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_FILE = os.path.join(TEST_DIR, "test_experiment_runner.csv")
+TEST_FILE = os.path.join(TEST_DIR, "test_experiment_result_collection.csv")
 TEST_FILE1 = os.path.join(TEST_DIR, "test_experiment_runner1.csv")
 REMOVE_FILES = []
 
@@ -139,6 +139,17 @@ class TestExperimentRunner(unittest.TestCase):
             return
         return
         df = smt.ExperimentRunner.runWorkunits()
+
+    def testIterateWorkunitInfo(self):
+        if IGNORE_TEST:
+            return
+        self.init()
+        size = 2
+        num_workunit = 0
+        for workunit_info in self.runner.iterateWorkunitInfo(num_partition=size):
+            num_workunit += 1
+            self.assertEqual(len(workunit_info.result_collection[cn.SD_BIOMODEL_NUM]), 0)
+        self.assertEqual(num_workunit, size)
 
 
 if __name__ == '__main__':

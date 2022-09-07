@@ -1,7 +1,4 @@
-
 from smarte.experiment_condition import ExperimentCondition
-from smarte.experiment_result_collection import ExperimentResultCollection
-from smarte.extended_dict import KEY_VALUE_SEP, VALUE_SEP
 import smarte.constants as cn
 
 import os
@@ -10,10 +7,6 @@ import unittest
 
 IGNORE_TEST = False
 IS_PLOT = False
-METHOD = "leastsq"
-TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_FILE = os.path.join(TEST_DIR, "test_experiment_runner.csv")        
-        
 
 #############################
 # Tests
@@ -21,42 +14,25 @@ TEST_FILE = os.path.join(TEST_DIR, "test_experiment_runner.csv")
 class TestExperimentCondition(unittest.TestCase):
 
     def setUp(self):
-        self.condition = ExperimentCondition(method=METHOD)
+        self.condition = ExperimentCondition(biomodel_num=[1, 3])
+        self.condition = ExperimentCondition(**self.condition)
 
-    def testConstructor(self):
-        if IGNORE_TEST:
-            return
-        self.assertEqual(self.condition[cn.SD_METHOD], METHOD)
-
-    def testStr(self):
+    def testGetFromStr(self):
         if IGNORE_TEST:
             return
         stg = str(self.condition)
-        self.assertEqual(stg.count(VALUE_SEP), len(cn.SD_CONDITIONS))
-        #
-        condition = ExperimentCondition(biomodel_num=[1, 2])
-        stg = str(condition)
-        self.assertEqual(stg.count(VALUE_SEP), len(cn.SD_CONDITIONS)+1)
+        condition = self.condition.getFromStr(stg)
+        self.assertTrue(condition.equals(self.condition))
 
-    def testGetFromDF(self):
+    def testCopyEquals(self):
         if IGNORE_TEST:
             return
-        df = pd.read_csv(TEST_FILE)
-        conditions = ExperimentCondition.getFromDF(df)
-        trues = [isinstance(c, ExperimentCondition) for c in conditions]
-        self.assertTrue(all(trues))
-
-    def testGetFromResultCollection(self):
-        if IGNORE_TEST:
-            return
-        df = pd.read_csv(TEST_FILE)
-        result_collection = ExperimentResultCollection(df=df)
-        conditions = ExperimentCondition.getFromResultCollection(result_collection)
-        trues = [isinstance(c, ExperimentCondition) for c in conditions]
-        self.assertTrue(all(trues))
-        self.assertEqual(len(df), len(conditions))
-        for condition in conditions:
-            self.assertEqual(len(condition), len(cn.SD_CONDITIONS))
+        condition = self.condition.copy()
+        self.assertTrue(condition.equals(self.condition))
+        condition[cn.SD_BIOMODEL_NUM] = -1
+        new_condition = ExperimentCondition(**condition)
+        self.assertFalse(new_condition.equals(self.condition))
+        self.assertTrue(isinstance(new_condition, ExperimentCondition))
         
 
 if __name__ == '__main__':

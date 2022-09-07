@@ -34,3 +34,41 @@ class ExperimentResultCollection(ExtendedDict):
             if len(self[key]) < size:
                 new_values = list(np.repeat(None, size))
                 self[key].extend(new_values)
+        dct = {k: v for k, v in self.items() if k in cn.SD_CONDITIONS}
+        self.conditions = ExperimentCondition(**dct)
+
+    def __len__(self):
+        """
+        Number of experiments.
+        
+        Returns
+        -------
+        int
+        """
+        keys = list(self.keys())
+        return len(self[keys[0]])
+
+    def copy(self):
+        """
+        Create an object with the same values as this object.
+        
+        Returns
+        -------
+        ExperimentResultCollection
+        """
+        new_collection = ExperimentResultCollection()
+        import pdb; pdb.set_trace()
+        for key, value in self.items():
+            new_collection[key] = list(value)           
+        return new_collection
+
+    def equals(self, result_collection):
+        """
+        Test if the conditions of the ExperimentResultCollections are the same.
+        Parameters
+        ----------
+        
+        Returns
+        -------
+        """
+        return self.conditions.equals(result_collection.conditions)

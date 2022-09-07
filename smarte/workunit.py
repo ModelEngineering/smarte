@@ -9,7 +9,6 @@ import pandas as pd
 
 
 class Workunit(ExtendedDict):
-    # All values are lists
 
     def __init__(self, **kwargs):
         """

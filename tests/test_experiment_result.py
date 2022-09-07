@@ -1,4 +1,3 @@
-
 from smarte.experiment_result import ExperimentResult
 from smarte.experiment_condition import ExperimentCondition
 import smarte.constants as cn

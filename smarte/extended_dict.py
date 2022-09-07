@@ -173,3 +173,20 @@ class ExtendedDict(dict):
             else:
                 dct[key] = values
         return cls(**dct)
+
+    def copy(self):
+        """
+        Creates a new object of the same class. Handles simple data types:
+            int, str, float, bool, list
+        
+        Returns
+        -------
+        self.__class__
+        """
+        dct = dict(self)
+        for key, value in self.items():
+            if not isinstance(value, str):
+                if isinstance(value, list):
+                    dct[key] = list(value)
+        return self.__class__(**dct)
+ 
