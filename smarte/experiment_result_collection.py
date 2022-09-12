@@ -29,8 +29,9 @@ class ExperimentResultCollection(ExtendedDict):
             if not key in self.keys():
                 self[key] = []
         keys = list(self.keys())
-        size = len(self[keys[0]])
+        size = np.max([len(self[k]) for k in keys])
         for key in keys:
+            # Make entries the same length
             if len(self[key]) < size:
                 new_values = list(np.repeat(None, size))
                 self[key].extend(new_values)
@@ -39,14 +40,16 @@ class ExperimentResultCollection(ExtendedDict):
 
     def __len__(self):
         """
-        Number of experiments.
+        Number of elements in the result collection.
         
         Returns
         -------
         int
         """
-        keys = list(self.keys())
-        return len(self[keys[0]])
+        lengths = [len(v) for v in self.values()]
+        if np.min(lengths) != np.max(lengths):
+            raise RuntimeError("Length of entries must be the same")
+        return lengths[0]
 
     def copy(self):
         """
@@ -57,7 +60,6 @@ class ExperimentResultCollection(ExtendedDict):
         ExperimentResultCollection
         """
         new_collection = ExperimentResultCollection()
-        import pdb; pdb.set_trace()
         for key, value in self.items():
             new_collection[key] = list(value)           
         return new_collection

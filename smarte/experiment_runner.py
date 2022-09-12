@@ -1,9 +1,10 @@
 """Runs experiments for cn.SD_CONTROLLED_FACTORS"""
 """
-1.  WorkunitInfo
+1.  WorkunitInfo -> Workunit with ExperimentResultCollection
     Concatenate
     clean: remove conditions that are in result
 2. Figure out where the history files are for doing fine grain scheduling
+3. Naming files for workunits. workunit has a filename. Use that.
 """
 
 import smarte as smt
