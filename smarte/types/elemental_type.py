@@ -15,7 +15,7 @@ def isFloat(obj):
     return isinstance(obj, float)
 
 def isInt(obj):
-    return isinstance(obj, int)
+    return "int" in str(type(obj))
 
 def isList(obj):
     if isStr(obj):

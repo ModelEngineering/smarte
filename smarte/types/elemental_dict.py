@@ -29,7 +29,7 @@ class ElementalDict(dict):
         # Assign defaults
         for key, value in self.default_dct.items():
             if not key in self.keys():
-                self[key] = value
+                self[key] = copy.deepcopy(value)
 
     def _validate(self, dct):
         """
@@ -40,7 +40,7 @@ class ElementalDict(dict):
         dct: dict
         """
         # Validate keys
-        diff = set(self.default_dct.keys()).difference(dct.keys())
+        diff = set(dct.keys()).difference(self.default_dct.keys())
         if len(diff) > 0:
             raise ValueError("Invalid keys: %s" % str(diff))
         # Validate values
@@ -171,12 +171,4 @@ class ElementalDict(dict):
         -------
         self.__class__
         """
-        if False:
-            dct = dict(self)
-            for key, value in self.items():
-                if not isinstance(value, str):
-                    # Make a copy of all lists
-                    if isinstance(value, list):
-                        dct[key] = list(value)
-            return self.__class__(**dct)
         return copy.deepcopy(self)
