@@ -73,7 +73,7 @@ class Workunit(ExtendedDict):
             if isinstance(value, str):
                 value = value.strip()
             if value == cn.SD_CONDITION_VALUE_ALL:
-                self[key] = cn.SD_CONDITION_VALUE_ALL_DCT[key]
+                self[key] = cn.SD_CONDITION_EXPANSION_DCT[key]
             elif isinstance(value, str):
                 self[key] = [value]
             elif isinstance(value, list):

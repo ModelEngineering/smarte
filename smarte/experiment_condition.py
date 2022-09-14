@@ -35,7 +35,7 @@ class ExperimentCondition(ExtendedDict):
                 self[key] = value
             # Expand "all" keywords
             if self.kwargs[key] == cn.SD_CONDITION_VALUE_ALL:
-                self[key] = cn.SD_CONDITION_VALUE_ALL_DCT[key]
+                self[key] = cn.SD_CONDITION_EXPANSION_DCT[key]
 
     def __str__(self):
         return str(self.kwargs)

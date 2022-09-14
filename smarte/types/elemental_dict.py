@@ -121,16 +121,21 @@ class ElementalDict(dict):
             -------
             int, bool, float, str
             """
-            # bool
-            if isBool(eval(value)):
-                new_value = eval(value)
-            # int
-            elif isInt(eval(value)):
-                new_value = int(value)
-            # float
-            elif isFloat(eval(value)):
-                new_value = float(value)
-            # str
+            if isStr(value):
+                if len(value) == 0:
+                    raise ValueError("Invalid value for element instance.")
+                # bool
+                if isBool(eval(value)):
+                    new_value = eval(value)
+                # int
+                elif isInt(eval(value)):
+                    new_value = int(value)
+                # float
+                elif isFloat(eval(value)):
+                    new_value = float(value)
+                # str
+                else:
+                    new_value = value
             else:
                 new_value = value
             return new_value
