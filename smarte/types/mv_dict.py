@@ -1,6 +1,7 @@
 """ElementDict that has a single value for each attribute"""
 
 from smarte.types.elemental_dict import ElementalDict
+from smarte.types.sv_dict import SVDict
 from smarte.types.elemental_type import isList
 
 import copy
@@ -84,3 +85,26 @@ class MVDict(ElementalDict):
 
     def _next(self):
         raise RuntimeError("Must override")
+
+    def __contains__(self, sv_dict):
+        """
+        Tests if the SVDict is in this collection.
+        Preserves the iterator index for restarts.
+
+        Parameters
+        ----------
+        sv_dict: inherits from SVDict
+        
+        Returns
+        -------
+        bool
+        """
+        iterate_idx = self.iterate_idx
+        cls = sv_dict.__class__
+        result = False
+        for item in self.iterate(cls, is_restart=True):
+            if item.equals(sv_dict):
+                result = True
+                break
+        self.iterate_idx = iterate_idx
+        return result

@@ -1,5 +1,6 @@
 from smarte.types.sv_dict import SVDict
 from smarte.types.mv_dict import MVDict, ALL
+from smarte.types.mv_dict_table import MVDictTable
 from smarte.types.elemental_type import isList
 
 import unittest
@@ -15,6 +16,10 @@ class SVDictTest(SVDict):
     default_dct = {"a": None, "b": None, "c": None}
 
 class MVDictTest(MVDict):
+    default_dct = {"a": [], "b": [], "c": []}
+    expansion_dct = {"c": list(range(4))}
+
+class MVDictTest2(MVDictTable):
     default_dct = {"a": [], "b": [], "c": []}
     expansion_dct = {"c": list(range(4))}
         
@@ -60,6 +65,15 @@ class TestMVDict(unittest.TestCase):
             self.assertEquals(e_dct["a"][0], e_dct["b"][0])
         #
         test()
+
+    def testContains(self):
+        if IGNORE_TEST:
+            return
+        mv_dict = MVDictTest2(a=[100, 200, 300, 400], b=["a", "b", "c", "d"], c=ALL)
+        sv_dict = SVDictTest(a=100, b="a", c=0)
+        self.assertTrue(sv_dict in mv_dict)
+        sv_dict = SVDictTest(a=100, b="a", c=1)
+        self.assertFalse(sv_dict in mv_dict)
 
 if __name__ == '__main__':
   unittest.main()

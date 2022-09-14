@@ -1,14 +1,11 @@
-"""
-Describes one or more experiments. It iteratively provides conditions
-for an experiment. A workunit provides information on completed experiments
-(ExperimentResultCollection), and it can be serialized and deserialized.
-"""
+"""Specifies experiments and holds experiment results. Provides restarts"""
 
 import smarte.constants as cn
 from smarte.persister import Persister
 import smarte as smt
-from smarte.extended_dict import ExtendedDict
-from smarte.iterate_dict import iterateDict
+from smarte.condition_collection import ConditionCollection
+from smarte.result_collection import ResultCollection
+from smarte.factor_collection import FactorCollection
 
 import numpy as np
 import os
@@ -19,40 +16,22 @@ PERSISTER_FILENAME = "workunit.pcl"
 PERSISTER_PATH = os.path.join(PERSISTER_DIR, PERSISTER_FILENAME)
 
 
-class Workunit(ExtendedDict):
+class Workunit(ConditionCollection):
 
-    def __init__(self, result_collection=None, df=None,
-          include_conditions=None, exclude_conditions=None,
+    def __init__(self, result_collection=ResultCollection(),
+          exclude_conditions=FactorCollection(),
           persister_path=PERSISTER_PATH, **kwargs):
         """
         Parameters
         ----------
-        result_collection: ExperimentResultCollection
-        df: DataFrame (results)
-            Use if result_collection is None
+        result_collection: ResultCollection (previously accumulated results)
+        exclude_conditions: FactorCollection (factor levels to exclude from experiments)
         persister_path: str (path to persister file)
         kwargs: dict
-            See cn.SD_CONDITION_DCT
+            See cn.SD_CONDITIONS
         """
         super().__init__(**kwargs)
-        self.kwargs = ExtendedDict(kwargs)  # Arguments passed
-        #
-        if include_conditions is None:
-            self.include_conditions = []
-        else:
-            self.include_conditions = list(include_conditions)
-        if exclude_conditions is None:
-            self.exclude_conditions = []
-        else:
-            self.exclude_conditions = list(exclude_conditions)
         # Result collection 
-        self.result_collection = result_collection
-        if self.result_collection is None:
-            self.result_collection = smt.ExperimentResultCollection(df=df)
-        else:
-            if df is not None:
-                raise ValueError("Non-None df parameter cannot be interpreted.")
-            self.result_collection = self.result_collection.copy()
         # Hashes for conditions
         self.include_condition_hashs = [hash(str(c)) for c
               in self.include_conditions]

@@ -9,7 +9,7 @@
 
 import smarte as smt
 from smarte import constants as cn
-from smarte.experiment_result_collection import ExperimentResultCollection
+from smarte.result_collection import ResultCollection
 import SBMLModel as mdl
 
 import collections
