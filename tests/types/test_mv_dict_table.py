@@ -4,6 +4,7 @@ from smarte.types.mv_dict_table import MVDictTable
 from smarte.types.elemental_type import isList
 
 import copy
+import pandas as pd
 import numpy as np
 import unittest
 
@@ -57,6 +58,13 @@ class TestMVDictTable(unittest.TestCase):
         sv_dicts = list(self.dict.iterate(SVDictTest))
         mv_dict_table = MVDictTableTest.makeFromSVDicts(sv_dicts)
         self.assertTrue(self.dict.equals(mv_dict_table))
+
+    def testMakeDataframe(self):
+        if IGNORE_TEST:
+            return
+        df = self.dict.makeDataframe()
+        self.assertTrue(isinstance(df, pd.DataFrame))
+        self.assertEqual(len(df), len(self.dict))
 
 
 if __name__ == '__main__':

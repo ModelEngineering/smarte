@@ -1,6 +1,5 @@
 """Dictionary whose values are lists of the same length"""
 
-from smarte.types.sv_dict import SVDict
 from smarte.types.mv_dict import MVDict
 
 import pandas as pd
@@ -19,6 +18,9 @@ class MVDictTable(MVDict):
         trues = [len(v) == len(self[self.first_key]) for v in self.values()]
         if not all(trues):
             raise ValueError("All lists must have the same length.")
+
+    def __len__(self):
+        return len(self[self.first_key])
 
     def _next(self):
         """
@@ -59,3 +61,22 @@ class MVDictTable(MVDict):
         pd.DataFrame
         """
         return pd.DataFrame(self)
+
+    @classmethod
+    def makeFromDataframe(cls, df):
+        """
+        Create MVDictTable from a collection of SVDict.
+
+        Parameters
+        ----------
+        df: pd.DataFrame
+        
+        Returns
+        -------
+        MVDictTable
+        """
+        diff = set(self.default_dct.keys()).difference(df.columns)
+        if len(diff) > 0:
+            raise ValueError("Missing keys in DataFrame: %s" % str(diff))
+        dct = {k: df[k] for k in self.default_dct.keys()}
+        return cls(**dct)
