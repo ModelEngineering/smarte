@@ -82,6 +82,7 @@ class MVDict(ElementalDict):
             if idx < self.iterate_idx:
                 continue
             yield cls(**dct)
+            self.iterate_idx = idx + 1
 
     def _next(self):
         raise RuntimeError("Must override")

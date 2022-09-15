@@ -17,8 +17,7 @@ WORKUNIT_PERSISTER_FILE_PREFIX = "wu_"
 
 class Workunit(ConditionCollection):
 
-    def __init__(self, result_collection=ResultCollection(),
-          excluded_factor_levels=FactorCollection(),
+    def __init__(self, result_collection=None, excluded_factor_collection=None,
           out_dir=cn.EXPERIMENT_DIR,
           filename=None,
           **kwargs):
@@ -26,7 +25,7 @@ class Workunit(ConditionCollection):
         Parameters
         ----------
         result_collection: ResultCollection (previously accumulated results)
-        excluded_factor_levels: FactorCollection
+        excluded_factor_collection: FactorCollection
             factor levels to exclude from experiments
         out_dir: str (path to directory where files are found)
         kwargs: dict
@@ -34,7 +33,11 @@ class Workunit(ConditionCollection):
         """
         super().__init__(**kwargs)
         self.result_collection = result_collection
-        self.excluded_factor_levels = excluded_factor_levels
+        if self.result_collection is None:
+            self.result_collection = ResultCollection()
+        self.excluded_factor_collection = excluded_factor_collection
+        if self.excluded_factor_collection is None:
+            self.excluded_factor_collection = FactorCollection()
         self.out_dir = out_dir
         self.filename = filename
         if self.filename is None:
@@ -106,7 +109,7 @@ class Workunit(ConditionCollection):
         Condition
         """
         for condition in super().iterate(Condition, is_restart=is_restart):
-            if not condition in self.excluded_factor_levels:
+            if not condition in self.excluded_factor_collection:
                 yield condition
 
     @classmethod
@@ -125,12 +128,11 @@ class Workunit(ConditionCollection):
         ffiles = os.listdir(out_dir)
         workunits = []
         for ffile in ffiles:
-            if ffile[0:len(WORKUNIT_PERSISTER_FILE_PREFIX)+1]  \
-                  == WORKUNIT_PERSISTER_FILE_PREFIX:
-               import pdb; pdb.set_trace()
+           if ffile[0:len(WORKUNIT_PERSISTER_FILE_PREFIX)]  \
+                 == WORKUNIT_PERSISTER_FILE_PREFIX:
                parts = os.path.splitext(ffile)
                if parts[1] == ".pcl":
-                   path = os.path.join(directory, ffile)
+                   path = os.path.join(out_dir, ffile)
                    workunits.append(cls.deserialize(path))
         return workunits
 
@@ -147,6 +149,7 @@ class Workunit(ConditionCollection):
             path = self.filename + ".csv"
             path = os.path.join(self.out_dir, path)
         df.to_csv(path)
+        return df
 
     def calcMultivaluedFactors(self):
         """
