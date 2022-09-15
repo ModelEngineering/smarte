@@ -5,4 +5,6 @@ from smarte.types.sv_dict import SVDict
 
 
 class Condition(SVDict):
-    default_dct = cn.SD_CONDITION_DCT
+    # Select single values or None if multiple values specified
+    default_dct = {k: None if v == cn.SD_CONDITION_VALUE_ALL else v
+         for k, v in  cn.SD_CONDITION_DCT.items()}

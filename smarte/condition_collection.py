@@ -11,7 +11,8 @@ class _ElementalConditionCollection(ElementalDict):
 
 
 class ConditionCollection(MVDictHypercube):
-    default_dct = {k: [v] for k, v in cn.SD_CONDITION_DCT.items()}
+    default_dct = {k: [v] if v != cn.SD_CONDITION_VALUE_ALL else v
+          for k, v in cn.SD_CONDITION_DCT.items()}
     expansion_dct = dict(cn.SD_CONDITION_EXPANSION_DCT)
 
     def __init__(self, **kwargs):

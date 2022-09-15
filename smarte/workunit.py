@@ -1,9 +1,10 @@
-"""Specifies experiments and holds experiment results. Provides restarts"""
+"""Workunit is a robust container of experiments to run and their results."""
 
 import smarte.constants as cn
 from smarte.persister import Persister
 import smarte as smt
 from smarte.condition_collection import ConditionCollection
+from smarte.condition import Condition
 from smarte.result_collection import ResultCollection
 from smarte.factor_collection import FactorCollection
 
@@ -11,56 +12,36 @@ import numpy as np
 import os
 import pandas as pd
 
-PERSISTER_DIR = os.path.dirname(os.path.abspath(__file__))
-PERSISTER_FILENAME = "workunit.pcl"
-PERSISTER_PATH = os.path.join(PERSISTER_DIR, PERSISTER_FILENAME)
+WORKUNIT_PERSISTER_FILE_PREFIX = "wu_"
 
 
 class Workunit(ConditionCollection):
 
     def __init__(self, result_collection=ResultCollection(),
-          exclude_conditions=FactorCollection(),
-          persister_path=PERSISTER_PATH, **kwargs):
+          excluded_factor_levels=FactorCollection(),
+          out_dir=cn.EXPERIMENT_DIR,
+          filename=None,
+          **kwargs):
         """
         Parameters
         ----------
         result_collection: ResultCollection (previously accumulated results)
-        exclude_conditions: FactorCollection (factor levels to exclude from experiments)
-        persister_path: str (path to persister file)
+        excluded_factor_levels: FactorCollection
+            factor levels to exclude from experiments
+        out_dir: str (path to directory where files are found)
         kwargs: dict
             See cn.SD_CONDITIONS
         """
         super().__init__(**kwargs)
-        # Result collection 
-        # Hashes for conditions
-        self.include_condition_hashs = [hash(str(c)) for c
-              in self.include_conditions]
-        self.exclude_condition_hashs = [hash(str(c)) for c
-              in self.exclude_conditions]
-        result_conditions = smt.ExperimentCondition.getFromResultCollection(
-              self.result_collection)
-        self.result_condition_hashs = [hash(str(c)) for c in result_conditions]
-        # Fill in missing conditions
-        if len(self.include_conditions) == 0:
-            for key, value in cn.SD_CONDITION_DCT.items():
-                # Fill in missing conditions
-                if not key in kwargs.keys():
-                    self.kwargs[key] = value
-                    self[key] = value
-        # Convert values to lists if needed
-        for key, value in self.items():
-            if isinstance(value, str):
-                value = value.strip()
-            if value == cn.SD_CONDITION_VALUE_ALL:
-                self[key] = cn.SD_CONDITION_EXPANSION_DCT[key]
-            elif isinstance(value, str):
-                self[key] = [value]
-            elif isinstance(value, list):
-                self[key] = value
-            else:
-                self[key] = [value]
+        self.result_collection = result_collection
+        self.excluded_factor_levels = excluded_factor_levels
+        self.out_dir = out_dir
+        self.filename = filename
+        if self.filename is None:
+            filename = WORKUNIT_PERSISTER_FILE_PREFIX + str(self)
+        self.persister_path = os.path.join(self.out_dir, "%s.pcl" % self.filename)
         # File for this workunit
-        self.persister = Persister(persister_path)
+        self.persister = Persister(self.persister_path)
 
     def serialize(self):
         """
@@ -69,7 +50,7 @@ class Workunit(ConditionCollection):
         self.persister.dump(self)
 
     @classmethod
-    def deserialize(cls, path=PERSISTER_PATH):
+    def deserialize(cls, path):
         """
         Retrieves a previously saved Workunit.
 
@@ -86,69 +67,85 @@ class Workunit(ConditionCollection):
         return data
     
     def equals(self, workunit):
-        b1 = super().equals(workunit)
-        b2 = self.result_collection.equals(workunit.result_collection)
-        import pdb; pdb.set_trace()
-        return b1 and b2
-
-    def extend(self, workunit):
         """
-        Combines another Workunit with this one.
+        Tests if two workunits have the same conditions and results.
 
         Parameters
         ----------
         workunit: Workunit
-        """
-        # Extend the dict values
-        super().extend(workunit) # Extend the dict values
-        self.result_collection.extend(workunit.result_collection, is_duplicates=True)
-
-    # FIXME: TEST BELOW HERE
-
-    def  __len__(self):
-        """
-        Number of conditions to simulate.
-        
-        Returns
-        -------
-        int
-        """
-        return len(list(self.iterator))
-
-    # TODO: implement. Create hash for all conditions in workunit
-    def __contains__(self, condition):
-        """
-        Determines if the condition is in the Workunit.
-
-        Parameters
-        ----------
-        condition: ExperimentCondition
         
         Returns
         -------
         bool
         """
+        b1 = super().equals(workunit)
+        b2 = self.result_collection.equals(workunit.result_collection)
+        return b1 and b2
 
-    @property
-    def iterator(self):
+    def appendResult(self, result):
         """
-        Iterates across all conditions taking into account explicit includes
-        and excludes as well as previously completed experiments.
+        Adds results to completed experiments.
+
+        Parameters
+        ----------
+        result: Result
+        """
+        self.result_collection.append(result)
+
+    def iterate(self, is_restart=True):
+        """
+        Iterates across all permitted conditions. Takes into account excluded
+        conditions.
+
+        Parameters
+        ----------
+        is_restart: bool
+        
+        Returns
         -------
-        ExperimentCondition
+        Condition
         """
-        for condition in self.include_conditions:
-            yield condition
-        #
-        for dct in iterateDict(self):
-            condition = smt.ExperimentCondition(**dct)
-            if hash(str(condition)) in self.exclude_condition_hashs:
-                continue
-            yield condition
+        for condition in super().iterate(Condition, is_restart=is_restart):
+            if not condition in self.excluded_factor_levels:
+                yield condition
 
-    # FIXME: How include includes, excludes
-    def __str__(self):
-        return str(self.kwargs)
+    @classmethod
+    def getWorkunits(cls, directory=cn.EXPERIMENT_DIR):
+        """
+        Finds all of the workunits in the directory.
+
+        Parameters
+        ----------
+        directory: str (directory to search)
+        
+        Returns
+        -------
+        list-Workunit
+        """
+        ffiles = os.path.listdir(directory)
+        workunits = []
+        for ffile in ffiles:
+           if ffile[0:len(WORKUNIT_PERSISTER_FILE_PREFIX)+1]  \
+                 == WORKUNIT_PERSISTER_FILE_PREFIX:
+               parts = os.path.splitext(ffile)
+               if parts[1] == ".pcl":
+                   path = os.path.join(directory, ffile)
+                   workunits.append(cls.deserialize(path))
+        return workunits
+
+    def makeResultCsv(self, path=None):
+        """
+        Writes the results of experiments.
+
+        Parameters
+        ----------
+        path: str
+        """
+        df = self.result_collection.makeDataframe()
+        if path is None:
+            path = self.filename + ".csv"
+            path = os.path.join(self.out_dir, path)
+        df.to_csv(path)
 
     def calcMultivaluedFactors(self):
         """

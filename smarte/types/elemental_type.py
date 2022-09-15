@@ -7,7 +7,7 @@ def isBool(obj):
     return isinstance(obj, bool)
 
 def isElemental(obj):
-    return isStr(obj) or isList(obj) or isInt(obj) or isFloat(obj)
+    return isStr(obj) or isList(obj) or isInt(obj) or isFloat(obj) or (obj is None)
 
 def isFloat(obj):
     if isInt(obj):
