@@ -38,7 +38,7 @@ class Workunit(ConditionCollection):
         self.out_dir = out_dir
         self.filename = filename
         if self.filename is None:
-            filename = WORKUNIT_PERSISTER_FILE_PREFIX + str(self)
+            self.filename = WORKUNIT_PERSISTER_FILE_PREFIX + str(self)
         self.persister_path = os.path.join(self.out_dir, "%s.pcl" % self.filename)
         # File for this workunit
         self.persister = Persister(self.persister_path)
@@ -110,23 +110,24 @@ class Workunit(ConditionCollection):
                 yield condition
 
     @classmethod
-    def getWorkunits(cls, directory=cn.EXPERIMENT_DIR):
+    def getWorkunits(cls, out_dir=cn.EXPERIMENT_DIR):
         """
         Finds all of the workunits in the directory.
 
         Parameters
         ----------
-        directory: str (directory to search)
+        out_dir: str (directory to search)
         
         Returns
         -------
         list-Workunit
         """
-        ffiles = os.path.listdir(directory)
+        ffiles = os.listdir(out_dir)
         workunits = []
         for ffile in ffiles:
-           if ffile[0:len(WORKUNIT_PERSISTER_FILE_PREFIX)+1]  \
-                 == WORKUNIT_PERSISTER_FILE_PREFIX:
+            if ffile[0:len(WORKUNIT_PERSISTER_FILE_PREFIX)+1]  \
+                  == WORKUNIT_PERSISTER_FILE_PREFIX:
+               import pdb; pdb.set_trace()
                parts = os.path.splitext(ffile)
                if parts[1] == ".pcl":
                    path = os.path.join(directory, ffile)
