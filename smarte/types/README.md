@@ -17,3 +17,5 @@ an ``MVDict`` where each list has the same length.
 ``MVDict`` that has a
 multi-dimensional representation of table in which the 
 elements of the table are the cross product of attribute values.
+
+<img src="https://github.com/ModelEngineering/smarte/blob/main/smarte/types/elemental_dicts.png" alt="drawing" width="400"/>
