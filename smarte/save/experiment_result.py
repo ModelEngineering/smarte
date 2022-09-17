@@ -23,6 +23,7 @@ class ExperimentResult(ExtendedDict):
             if not key in self.keys():
                 self.is_complete = False
                 self[key] = None
+        self.conditions = {k: self[k] for k in cn.SD_CONDITIONS}
 
     def isComplete(self):
         """
@@ -58,3 +59,6 @@ class ExperimentResult(ExtendedDict):
                 if not UNNAMED in column:
                     result[column] = list(df[column].values)
         return result
+
+    def equals(self, experiment_result):
+        return self.conditions.equals(experiment_result.conditions)

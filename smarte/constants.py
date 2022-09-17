@@ -1,4 +1,7 @@
 """Constants used in smarte"""
+
+from smarte.types.mv_dict import ALL
+
 import os
 import zipfile
 
@@ -34,15 +37,15 @@ SD_RANGE_MAX_FRAC = "range_max_frac"  # fraction of value for max of range
 SD_RANGE_MIN_FRAC = "range_min_frac"  # fraction of value for min of range
 SD_STATUS = "status"  #str (reason for failure)
 # Universal values for conditions
-SD_CONDITION_VALUE_ALL = "all"
-SD_CONDITION_VALUE_ALL_DCT = {
+SD_CONDITION_VALUE_ALL = ALL
+SD_CONDITION_EXPANSION_DCT = {
       SD_BIOMODEL_NUM: list(range(1, 1200)),
       SD_TS_INSTANCE:  list(range(1, 6)),
       }
 # A califier is something the descries the model or the experiment
 # These values are not aggregated
 SD_CONDITION_DCT = {
-      SD_BIOMODEL_NUM:SD_CONDITION_VALUE_ALL,
+      SD_BIOMODEL_NUM: SD_CONDITION_VALUE_ALL,
       SD_COLUMNS_DELETED: 0,
       SD_MAX_FEV: 1000,
       SD_METHOD: "differential_evolution",
@@ -63,5 +66,9 @@ SD_METRICS.extend(SD_TIME_METRICS)
 SD_METRICS.append(SD_STATUS)
 SD_ALL = list(SD_QUALIFIERS)
 SD_ALL.extend(SD_METRICS)
+SD_ALL_DCT = {k: None for k in SD_ALL}
+{SD_ALL_DCT.update({k: v}) for k, v in SD_CONDITION_DCT.items()}
+# Field values
+SD_STATUS_SUCCESS = "Success!"
 # Miscellaneous
 VALUE_SEP = "--"

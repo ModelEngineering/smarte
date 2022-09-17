@@ -4,6 +4,8 @@
 # Separators
 KEY_VALUE_SEP = "__"  # Separates key-value pairs
 VALUE_SEP = "--" # Separates the key from its value and values from one another
+MAX_LIST_LEN = 5  # Maximum length of a list in a string
+LIST_BREAK = "..."  # Indicates a break in the list
 
 
 class ExtendedDict(dict):
@@ -78,7 +80,14 @@ class ExtendedDict(dict):
                 if isinstance(value, str):
                     name = stringify(key, value)
                 elif isinstance(value, list):
-                    value_name = VALUE_SEP.join([str(v) for v in value])
+                    if len(value) > MAX_LIST_LEN:
+                        # List is too long. Add list break
+                        value.sort()
+                        value_name = VALUE_SEP.join(
+                              str(v) for v in value[0:MAX_LIST_LEN-1])
+                        value_name = value_name + LIST_BREAK + str(value[-1])
+                    else:
+                        value_name = VALUE_SEP.join([str(v) for v in value])
                     name = stringify(key, value_name)
                 else:
                     name = stringify(key, value)
@@ -139,6 +148,8 @@ class ExtendedDict(dict):
                 new_value = value
             return new_value
         #
+        if LIST_BREAK in stg:
+            raise ValueError("Cannot convert a string with a list break: %s" % stg)
         dct = {}
         key_values = stg.split(KEY_VALUE_SEP)
         for key_value in key_values:
@@ -162,3 +173,20 @@ class ExtendedDict(dict):
             else:
                 dct[key] = values
         return cls(**dct)
+
+    def copy(self):
+        """
+        Creates a new object of the same class. Handles simple data types:
+            int, str, float, bool, list
+        
+        Returns
+        -------
+        self.__class__
+        """
+        dct = dict(self)
+        for key, value in self.items():
+            if not isinstance(value, str):
+                if isinstance(value, list):
+                    dct[key] = list(value)
+        return self.__class__(**dct)
+ 
