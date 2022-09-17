@@ -1,7 +1,6 @@
 """ElementDict that has a single value for each attribute"""
 
 from smarte.types.elemental_dict import ElementalDict
-from smarte.types.sv_dict import SVDict
 from smarte.types.elemental_type import isList
 
 import copy
@@ -46,9 +45,9 @@ class MVDict(ElementalDict):
         """
         for key, value in self.items():
             if key in dct.keys():
-                self[key].append(dct[key])
+                value.append(dct[key])
 
-    def extend(self, dct, is_duplicates=False):
+    def extend(self, dct):
         """
         Extends values in dictionary.
 
@@ -60,7 +59,7 @@ class MVDict(ElementalDict):
         """
         for key, value in self.items():
             if key in dct.keys():
-                self[key].extend(dct[key])
+                value.extend(dct[key])
 
     def iterate(self, cls, is_restart=True):
         """
@@ -71,7 +70,7 @@ class MVDict(ElementalDict):
         ----------
         cls: inherits from SVDict
         is_restart: bool
-        
+
         Returns
         -------
         SVDict
@@ -95,7 +94,7 @@ class MVDict(ElementalDict):
         Parameters
         ----------
         sv_dict: inherits from SVDict
-        
+
         Returns
         -------
         bool

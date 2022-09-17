@@ -38,6 +38,13 @@ class TestMVDictHypercube(unittest.TestCase):
         for key, value in dct.items():
             self.assertEqual(2*len(self.dict[key]), len(value))
 
+    def testMakeMVDictTable(self):
+        if IGNORE_TEST:
+            return
+        mv_dict_table = self.dict.makeMVDictTable()
+        length = len(self.dict)
+        self.assertEqual(length, len(mv_dict_table))
+
 
 if __name__ == '__main__':
   unittest.main()

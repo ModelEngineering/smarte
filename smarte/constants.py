@@ -68,5 +68,7 @@ SD_ALL = list(SD_QUALIFIERS)
 SD_ALL.extend(SD_METRICS)
 SD_ALL_DCT = {k: None for k in SD_ALL}
 {SD_ALL_DCT.update({k: v}) for k, v in SD_CONDITION_DCT.items()}
+# Field values
+SD_STATUS_SUCCESS = "Success!"
 # Miscellaneous
 VALUE_SEP = "--"

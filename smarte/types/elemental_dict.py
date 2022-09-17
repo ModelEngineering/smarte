@@ -1,7 +1,6 @@
 """Dictionary of elemental types with pre-specified attributes"""
 
-from smarte.types.elemental_type import isList, isStr, isInt, isBool, isFloat,  \
-      isElemental
+from smarte.types.elemental_type import isStr, isInt, isBool, isFloat, isElemental
 
 import copy
 
@@ -34,7 +33,7 @@ class ElementalDict(dict):
     def _validate(self, dct):
         """
         Checks that values are correct types and have correct keys.
- 
+
         Parameters
         ----------
         dct: dict
@@ -97,13 +96,14 @@ class ElementalDict(dict):
         return str(self) == str(other)
 
     @classmethod
-    def makeFromStr(cls, stg):
+    def makeFromStr(cls, stg, **kwargs):
         """
         Decodes the string as a representation of the dictionary.
 
         Parameters
         ----------
         stg: str (string representation)
+        kwargs: optional arguments in constructor
 
         Returns
         -------
@@ -151,6 +151,7 @@ class ElementalDict(dict):
             if len(parts) == 2:
                 key, values = parts
             elif len(parts) < 2:
+                import pdb; pdb.set_trace()
                 raise RuntimeError("Wrong size.")
             else:
                 key = parts[0]
@@ -165,13 +166,13 @@ class ElementalDict(dict):
                 dct[key] = [convert(v) for v in values]
             else:
                 dct[key] = values
-        return cls(**dct)
+        return cls(**dct, **kwargs)
 
     def copy(self):
         """
         Creates a deep object of the same class. Handles simple data types:
             int, str, float, bool, list
-        
+
         Returns
         -------
         self.__class__

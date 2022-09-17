@@ -35,24 +35,25 @@ class MVDictTable(MVDict):
             yield dct
 
     @classmethod
-    def makeFromSVDicts(cls, sv_dicts):
+    def makeFromSVDicts(cls, mv_cls, sv_dicts):
         """
         Create MVDictTable from a collection of SVDict.
 
         Parameters
         ----------
         sv_dicts: list-SVDict
-        
+        mv_cls: Class (for table)
+
         Returns
         -------
         MVDictTable
         """
         dct = {k: [] for k in cls.default_dct.keys()}
         for this_dct in sv_dicts:
-            [dct[k].append(v) for k, v in this_dct.items()]
-        return cls(**dct)
-                
-    def makeDataframe(self): 
+            _ = [dct[k].append(v) for k, v in this_dct.items()]
+        return mv_cls(**dct)
+
+    def makeDataframe(self):
         """
         Creates a datafrome from the dictionary.
 
@@ -70,13 +71,13 @@ class MVDictTable(MVDict):
         Parameters
         ----------
         df: pd.DataFrame
-        
+
         Returns
         -------
         MVDictTable
         """
-        diff = set(self.default_dct.keys()).difference(df.columns)
+        diff = set(cls.default_dct.keys()).difference(df.columns)
         if len(diff) > 0:
             raise ValueError("Missing keys in DataFrame: %s" % str(diff))
-        dct = {k: df[k] for k in self.default_dct.keys()}
+        dct = {k: df[k] for k in cls.default_dct.keys()}
         return cls(**dct)

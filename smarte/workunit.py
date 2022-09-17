@@ -160,3 +160,33 @@ class Workunit(ConditionCollection):
         list-str
         """
         return [k for k, v in self.items() if len(v) > 1]
+
+    @classmethod
+    def makeWorkunitsFromFile(cls, path, **kwargs):
+        """
+        Retrieves the workunits in a file.
+
+        Parameters
+        ----------
+        path: str (path to file of workunits in string representation)
+        kwargs: dict (optional arguments to use when constructing workunits)
+        
+        Returns
+        -------
+        list-workunit
+        """
+        with open(path, "r") as fd:
+            lines = fd.readlines()
+        workunit_strs = [l.strip() for l in lines]
+        workunit_strs = [l for l in workunit_strs if l[0] != "#"]
+        #
+        workunits = []
+        for workunit_str in workunit_strs:
+            try:
+                workunit = smt.Workunit.makeFromStr(workunit_str, **kwargs)
+            except Exception as exp:
+                print(exp)
+                raise ValueError("Invalid workunit string: %s"
+                      % workunit_str)
+            workunits.append(workunit)
+        return workunits

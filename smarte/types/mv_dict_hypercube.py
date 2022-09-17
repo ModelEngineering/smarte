@@ -1,20 +1,13 @@
 """Dictionary whose values represent a hypercube"""
 
+from smarte.types.sv_dict import SVDict
 from smarte.types.mv_dict import MVDict
 from smarte.types.mv_dict_table import MVDictTable
 
-import pandas as pd
+import numpy as np
 
 
 class MVDictHypercube(MVDict):
-
-    def __init__(self, **kwargs):
-        """
-        Parameters
-        ----------
-        kwargs: dict
-        """
-        super().__init__(**kwargs)
 
     def _next(self):
         """
@@ -52,17 +45,37 @@ class MVDictHypercube(MVDict):
                 # Have completed iteration
                 break
 
-    def makeMVDictTable(self, cls):
+    def __len__(self):
+        """
+        Calculates the length of the list produced by iteration.
+
+        Returns
+        -------
+        int
+        """
+        sizes = [len(v) for v in self.values()]
+        return np.prod(sizes)
+
+    def makeMVDictTable(self, mv_table_cls=None):
         """
         Creates a MVDictTable.
 
         Parameters
         ----------
-        cls: inherents from MVDictTable
-        
+        mv_table_cls: Class (inherents from MVDictTable)
+
         Returns
         -------
-        cls
+        mv_table_cls
         """
-        sv_dicts = list(self.iterate(is_restart=True))
-        return MVDictTable.makeFromSVDicts(sv_dicts)
+        class _SVDict(SVDict):
+            default_dct = self.default_dct
+        #
+        class _MVDictTable(MVDictTable):
+            default_dct = self.default_dct
+            expansion_dct = self.expansion_dct
+        #
+        if mv_table_cls is None:
+            mv_table_cls = _MVDictTable
+        sv_dicts = list(self.iterate(_SVDict, is_restart=True))
+        return mv_table_cls.makeFromSVDicts(mv_table_cls, sv_dicts)

@@ -13,6 +13,7 @@ import unittest
 IGNORE_TEST = False
 IS_PLOT = False
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+TEST_WORKUNITS_FILE = os.path.join(TEST_DIR, "test_workunit_workunits.txt")
 workunit_str = "biomodel_num--1__columns_deleted--0__max_fev--10000__method--differential_evolution__noise_mag--0.1__latincube_idx--1__range_max_frac--2.0__range_min_frac--0.5__ts_instance--1"
 WORKUNIT_STR2  = "biomodel_num--1__columns_deleted--0__max_fev--10000__method--differential_evolution__noise_mag--0.1__latincube_idx--1__range_max_frac--2.0__range_min_frac--0.5__ts_instance--1--2--3--4--5"
 WORKUNIT_STR3  = "biomodel_num--all__columns_deleted--0__max_fev--10000__method--differential_evolution__noise_mag--0.1__latincube_idx--1__range_max_frac--2.0__range_min_frac--0.5__ts_instance--all"
@@ -92,10 +93,18 @@ class TestWorkunit(unittest.TestCase):
         df = workunit.makeResultCsv()
         self.assertEqual(len(df), 2)
 
+    def testMakeWorkunitsFromFile(self):
+        if IGNORE_TEST:
+            return
+        workunits = self.workunit.makeWorkunitsFromFile(TEST_WORKUNITS_FILE)
+        self.assertEquals(len(workunits), 3)
+        trues = [isinstance(w, Workunit) for w in workunits]
+        self.assertTrue(all(trues))
+
     def testCalcMultivaluedFactors(self):
         if IGNORE_TEST:
             return
-        workunit = Workunit.makeFromStr(WORKUNIT_STR3)
+        workunit = Workunit.makeFromStr(WORKUNIT_STR3, out_dir=TEST_DIR)
         factors = workunit.calcMultivaluedFactors()
         diff = set([cn.SD_BIOMODEL_NUM, cn.SD_TS_INSTANCE]).symmetric_difference(
               factors)
