@@ -1,6 +1,6 @@
 # SMART ESTIMATION OF PARAMETERS IN REACTION NETWORKS (SMARTE)
 
-# Concepts
+# Core Concepts
 
 * A **factor** is something that is changed in an experiment, such as start concentration of a species and algorithm for parameter estimation.
 * A **level** for a factor is a value that is assigned the factor for an experiment.

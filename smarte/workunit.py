@@ -1,50 +1,155 @@
-"""Describes multiple conditions to simulate"""
+"""Workunit is a robust container of experiments to run and their results."""
 
 import smarte.constants as cn
+from smarte.persister import Persister
 import smarte as smt
-from smarte.extended_dict import ExtendedDict
-from smarte.iterate_dict import iterateDict
+from smarte.condition_collection import ConditionCollection
+from smarte.condition import Condition
+from smarte.result_collection import ResultCollection
+from smarte.factor_collection import FactorCollection
 
+import numpy as np
+import os
 import pandas as pd
 
+WORKUNIT_PERSISTER_FILE_PREFIX = "wu_"
 
-class Workunit(ExtendedDict):
-    # All values are lists
 
-    def __init__(self, **kwargs):
+class Workunit(ConditionCollection):
+
+    def __init__(self, result_collection=None, excluded_factor_collection=None,
+          out_dir=cn.EXPERIMENT_DIR,
+          filename=None,
+          **kwargs):
         """
         Parameters
         ----------
-        See cn.SD_CONDITION_DCT
+        result_collection: ResultCollection (previously accumulated results)
+        excluded_factor_collection: FactorCollection
+            factor levels to exclude from experiments
+        out_dir: str (path to directory where files are found)
+        kwargs: dict
+            See cn.SD_CONDITIONS
         """
         super().__init__(**kwargs)
-        self.kwargs = ExtendedDict(kwargs)  # Arguments passed
-        # Fill in missing conditions
-        for key, value in cn.SD_CONDITION_DCT.items():
-            # Fill in missing conditions
-            if not key in kwargs.keys():
-                self.kwargs[key] = value
-                self[key] = value
-        # Convert values to lists if needed
-        for key, value in self.items():
-            if isinstance(value, str):
-                value = value.strip()
-            if value == cn.SD_CONDITION_VALUE_ALL:
-                self[key] = cn.SD_CONDITION_VALUE_ALL_DCT[key]
-            elif isinstance(value, str):
-                self[key] = [value]
-            elif isinstance(value, list):
-                self[key] = value
-            else:
-                self[key] = [value]
+        self.result_collection = result_collection
+        if self.result_collection is None:
+            self.result_collection = ResultCollection()
+        self.excluded_factor_collection = excluded_factor_collection
+        if self.excluded_factor_collection is None:
+            self.excluded_factor_collection = FactorCollection()
+        self.out_dir = out_dir
+        self.filename = filename
+        if self.filename is None:
+            self.filename = WORKUNIT_PERSISTER_FILE_PREFIX + str(self)
+        self.persister_path = os.path.join(self.out_dir, "%s.pcl" % self.filename)
+        # File for this workunit
+        self.persister = Persister(self.persister_path)
 
-    @property
-    def iterator(self):
-        for dct in iterateDict(self):
-            yield smt.ExperimentCondition(**dct)
+    def serialize(self):
+        """
+        Saves the current state of the workunit
+        """
+        self.persister.dump(self)
 
-    def __str__(self):
-        return str(self.kwargs)
+    @classmethod
+    def deserialize(cls, path):
+        """
+        Retrieves a previously saved Workunit.
+
+        Parameters
+        ----------
+        path: str (Path to a persister file)
+        
+        Returns
+        -------
+        Workunit
+        """
+        persister = Persister(path)
+        data = persister.load()
+        return data
+    
+    def equals(self, workunit):
+        """
+        Tests if two workunits have the same conditions and results.
+
+        Parameters
+        ----------
+        workunit: Workunit
+        
+        Returns
+        -------
+        bool
+        """
+        b1 = super().equals(workunit)
+        b2 = self.result_collection.equals(workunit.result_collection)
+        return b1 and b2
+
+    def appendResult(self, result):
+        """
+        Adds results to completed experiments.
+
+        Parameters
+        ----------
+        result: Result
+        """
+        self.result_collection.append(result)
+
+    def iterate(self, is_restart=True):
+        """
+        Iterates across all permitted conditions. Takes into account excluded
+        conditions.
+
+        Parameters
+        ----------
+        is_restart: bool
+        
+        Returns
+        -------
+        Condition
+        """
+        for condition in super().iterate(Condition, is_restart=is_restart):
+            if not condition in self.excluded_factor_collection:
+                yield condition
+
+    @classmethod
+    def getWorkunits(cls, out_dir=cn.EXPERIMENT_DIR):
+        """
+        Finds all of the workunits in the directory.
+
+        Parameters
+        ----------
+        out_dir: str (directory to search)
+        
+        Returns
+        -------
+        list-Workunit
+        """
+        ffiles = os.listdir(out_dir)
+        workunits = []
+        for ffile in ffiles:
+           if ffile[0:len(WORKUNIT_PERSISTER_FILE_PREFIX)]  \
+                 == WORKUNIT_PERSISTER_FILE_PREFIX:
+               parts = os.path.splitext(ffile)
+               if parts[1] == ".pcl":
+                   path = os.path.join(out_dir, ffile)
+                   workunits.append(cls.deserialize(path))
+        return workunits
+
+    def makeResultCsv(self, path=None):
+        """
+        Writes the results of experiments.
+
+        Parameters
+        ----------
+        path: str
+        """
+        df = self.result_collection.makeDataframe()
+        if path is None:
+            path = self.filename + ".csv"
+            path = os.path.join(self.out_dir, path)
+        df.to_csv(path)
+        return df
 
     def calcMultivaluedFactors(self):
         """
@@ -56,17 +161,32 @@ class Workunit(ExtendedDict):
         """
         return [k for k, v in self.items() if len(v) > 1]
 
-    def removeExpansions(self):
+    @classmethod
+    def makeWorkunitsFromFile(cls, path, **kwargs):
         """
-        Removes the expansion of "all" values.
+        Retrieves the workunits in a file.
+
+        Parameters
+        ----------
+        path: str (path to file of workunits in string representation)
+        kwargs: dict (optional arguments to use when constructing workunits)
+        
+        Returns
+        -------
+        list-workunit
         """
-        new_workunit = Workunit(**self.kwargs)
-        for key, value in new_workunit.items():
-            if self.kwargs[key] == cn.SD_CONDITION_VALUE_ALL:
-                new_value = [cn.SD_CONDITION_VALUE_ALL]
-            else:
-                new_value = value
-            new_workunit[key] = new_value
-        if "?" in new_workunit:
-            import pdb; pdb.set_trace()
-        return new_workunit
+        with open(path, "r") as fd:
+            lines = fd.readlines()
+        workunit_strs = [l.strip() for l in lines]
+        workunit_strs = [l for l in workunit_strs if l[0] != "#"]
+        #
+        workunits = []
+        for workunit_str in workunit_strs:
+            try:
+                workunit = smt.Workunit.makeFromStr(workunit_str, **kwargs)
+            except Exception as exp:
+                print(exp)
+                raise ValueError("Invalid workunit string: %s"
+                      % workunit_str)
+            workunits.append(workunit)
+        return workunits

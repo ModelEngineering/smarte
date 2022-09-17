@@ -1,4 +1,4 @@
-,num_species,num_reaction,num_parameter,biomodel_num,method,noise_mag,range_min_frac,range_max_frac,latincube_idx,columns_deleted,max_fev,ts_instance,median_err,max_err,min_err,avg_time,cnt,tot_time,status
-0,12,17,35,1,differential_evolution,0.1,0.5,2,2,0,1000,1,0.122787973218018,0.999993378674366,-0.028006649672934,0.000314992862743,1001,0.315307855606079,Success!
-1,12,17,35,1,differential_evolution,0.1,0.5,2,2,0,1000,2,-0.015006686330659,0.999982991147945,-0.015006686330659,0.000318407416939,1001,0.318725824356079,Success!
-2,12,17,35,1,differential_evolution,0.1,0.5,2,2,0,1000,3,0.276111022190622,-0.999488963873188,-0.020262434133555,0.00031625736248,1001,0.316573619842529,Success!
+,num_species,num_reaction,num_parameter,biomodel_num,method,noise_mag,range_min_frac,range_max_frac,latincube_idx,columns_deleted,max_fev,ts_instance,median_err,max_err,min_err,avg_time,cnt,tot_time,status,rssq
+0,12,17,35,1,differential_evolution,0.1,0.5,2,2,0,1000,1,0.122787973218018,0.999993378674366,-0.028006649672934,0.000314992862743,1001,0.315307855606079,Success!,1
+1,12,17,35,1,differential_evolution,0.1,0.5,2,2,0,1000,2,-0.015006686330659,0.999982991147945,-0.015006686330659,0.000318407416939,1001,0.318725824356079,Success!,1
+2,12,17,35,1,differential_evolution,0.1,0.5,2,2,0,1000,3,0.276111022190622,-0.999488963873188,-0.020262434133555,0.00031625736248,1001,0.316573619842529,Success!,1
