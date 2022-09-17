@@ -37,6 +37,7 @@ FINE_GRAIN_RESULT_PAT = "fine_grain_result-%d.csv"
 
 
 def workunitRunnerWrapper(workunit):
+    print(str(workunit))
     runner = smt.WorkunitRunner(workunit)
     return runner.run()
 
@@ -168,7 +169,7 @@ class WorkunitRunner(object):
 
 
 if __name__ == '__main__':
-    if True:
+    if False:
         workunit_str = "biomodel_num--all__columns_deleted--0__max_fev--10000__method--differential_evolution__noise_mag--0.1__latincube_idx--1__range_max_frac--2.0__range_min_frac--0.5__ts_instance--all"
         a_workunit = smt.Workunit.makeFromStr(workunit_str)
         this_runner = smt.WorkunitRunner(a_workunit)
