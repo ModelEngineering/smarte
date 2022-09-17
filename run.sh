@@ -11,7 +11,7 @@ function runit () {
     echo "*** New iteration at: `date` ***"
     echo ""
     bash kill.sh
-    python $HOME/smarte/smarte/workload_runner.py  &
+    python $HOME/home/Technical/smarte/smarte/workunit_runner.py  &
 }
 
 # Monitor and restart if necesary
