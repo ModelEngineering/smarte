@@ -22,7 +22,9 @@ class TestResult(unittest.TestCase):
     def testConstructor(self):
         if IGNORE_TEST:
             return
-        import pdb; pdb.set_trace()
+        self.assertGreater(len(self.result), len(self.condition))
+        trues = [self.result[k] == v for k, v in self.condition.items()]
+        self.assertTrue(all(trues))
         
         
 
