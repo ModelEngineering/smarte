@@ -39,7 +39,8 @@ SD_STATUS = "status"  #str (reason for failure)
 # Universal values for conditions
 SD_CONDITION_VALUE_ALL = ALL
 SD_CONDITION_EXPANSION_DCT = {
-      SD_BIOMODEL_NUM: list(range(1, 1200)),
+      SD_BIOMODEL_NUM: list(range(1, 1060)),
+      SD_LATINCUBE_IDX: list(range(1, 11)),  # 10 latin cubes
       SD_TS_INSTANCE:  list(range(1, 6)),
       }
 # A califier is something the descries the model or the experiment
@@ -50,7 +51,7 @@ SD_CONDITION_DCT = {
       SD_MAX_FEV: 1000,
       SD_METHOD: "differential_evolution",
       SD_NOISE_MAG: 0,
-      SD_LATINCUBE_IDX: 1,
+      SD_LATINCUBE_IDX: SD_CONDITION_VALUE_ALL,
       SD_RANGE_MIN_FRAC: 0.5,
       SD_RANGE_MAX_FRAC: 2.0,
       SD_TS_INSTANCE: SD_CONDITION_VALUE_ALL,

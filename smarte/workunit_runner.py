@@ -157,3 +157,4 @@ if __name__ == '__main__':
     #
     runner = WorkunitRunner(a_workunit)
     _ = runner.run()
+    print("\n***COMPLETED %s" % args.workunit_str)
