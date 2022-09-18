@@ -64,7 +64,8 @@ class TestWorkunit(unittest.TestCase):
         if IGNORE_TEST:
             return
         self.workunit.serialize()
-        new_workunit = self.workunit.deserialize(self.workunit.persister_path)
+        new_workunit = self.workunit.deserialize(str(self.workunit),
+              out_dir=TEST_DIR)
         self.assertTrue(self.workunit.equals(new_workunit))
 
     def testAppendResult(self):
@@ -97,7 +98,7 @@ class TestWorkunit(unittest.TestCase):
         if IGNORE_TEST:
             return
         workunits = self.workunit.makeWorkunitsFromFile(TEST_WORKUNITS_FILE)
-        self.assertEquals(len(workunits), 3)
+        self.assertEqual(len(workunits), 3)
         trues = [isinstance(w, Workunit) for w in workunits]
         self.assertTrue(all(trues))
 

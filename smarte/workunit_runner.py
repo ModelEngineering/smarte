@@ -9,18 +9,14 @@
 
 import smarte as smt
 from smarte import constants as cn
-from smarte.result_collection import ResultCollection
 from smarte.result import Result
-from smarte.condition import Condition
 from smarte.workunit import Workunit
 import SBMLModel as mdl
 
-import collections
-import dask
-from dask.distributed import Client
-import numpy as np
+import argparse
 import os
 import pandas as pd
+import sys
 
 F_LOWER = 0.25  # Lower end of range for value search
 F_HIGHER = 4.0  # Upper end of range for value search
@@ -34,11 +30,6 @@ BIOMODEL_EXCLUDES = list(BIOMODEL_EXCLUDE_DF[cn.SD_BIOMODEL_NUM].values)
 DUMMY_RESULT = {"a": 0.5, "b": 0.5}
 EXCLUDE_FACTOR_DCT = dict(biomodel_num=BIOMODEL_EXCLUDES)
 FINE_GRAIN_RESULT_PAT = "fine_grain_result-%d.csv"
-
-
-def workunitRunnerWrapper(workunit):
-    runner = smt.WorkunitRunner(workunit)
-    return runner.run()
 
 
 class WorkunitRunner(object):
@@ -104,8 +95,8 @@ class WorkunitRunner(object):
                           method_names=condition[cn.SD_METHOD],
                           max_fev=condition[cn.SD_MAX_FEV],
                           )
-                except (ValueError, RuntimeError) as exp:
-                    result[cn.SD_STATUS] = str(exp)
+                except (ValueError, RuntimeError) as exp1:
+                    result[cn.SD_STATUS] = str(exp1)
                 dct.update(condition)
                 result = Result(**dct)
                 self.workunit.appendResult(result)
@@ -142,36 +133,27 @@ class WorkunitRunner(object):
         df = df.set_index(cn.MILLISECONDS)
         return mdl.Timeseries(df)
 
-    @classmethod
-    def schedule(cls, num_worker=4, path=cn.WORKUNITS_FILE):
-        """
-        Schedules workunits to run in parallel.
-
-        Parameters
-        ----------
-        num_worker: int (number of parallel calculations)
-        path: str (location of file with the workunits string representations)
-        """
-        # Create the local cluster
-        client = Client(n_workers=num_worker, memory_limit='3GB',
-               threads_per_worker=1)
-        lazy_results = []
-        workunits = Workunit.makeWorkunitsFromFile(path)
-        # Assemble the list of computations
-        for workunit in workunits:
-            lazy_result = dask.delayed(workunitRunnerWrapper)(workunit)
-            lazy_results.append(lazy_result)
-        # Trigger the computation
-        final_result = dask.compute(*lazy_results)
-        client.close()
-        return final_result
-
 
 if __name__ == '__main__':
-    if False:
-        workunit_str = "biomodel_num--all__columns_deleted--0__max_fev--10000__method--differential_evolution__noise_mag--0.1__latincube_idx--1__range_max_frac--2.0__range_min_frac--0.5__ts_instance--all"
-        a_workunit = smt.Workunit.getFromStr(workunit_str)
-        this_runner = smt.WorkunitRunner(a_workunit)
-        this_runner.run()
-    else:
-        WorkunitRunner.schedule(num_worker=12)
+    parser = argparse.ArgumentParser(description="Runs simulations for a workunit.")
+    parser.add_argument("workunit_str", type=str,
+          help="workunit in string representation")
+    args = parser.parse_args()
+    for key in cn.SD_CONDITIONS:
+        if not key in args.workunit_str:
+            print("*** Input Error. Workunit is missing '%s'." % key)
+            sys.exit(-1)
+    # Recover the workunit if it exists
+    try:
+        a_workunit = Workunit.deserialize(args.workunit_str, out_dir=cn.EXPERIMENT_DIR)
+    except Exception as exp:
+        # Not present. Create a new workunit.
+        try:
+            a_workunit = Workunit.makeFromStr(args.workunit_str)
+        except Exception as exp1:
+            print(exp1)
+            raise ValueError("*** Input Error: Bad workunit string: %s"
+                  % args.workunit_str)
+    #
+    runner = WorkunitRunner(a_workunit)
+    _ = runner.run()

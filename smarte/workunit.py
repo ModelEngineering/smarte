@@ -8,11 +8,9 @@ from smarte.condition import Condition
 from smarte.result_collection import ResultCollection
 from smarte.factor_collection import FactorCollection
 
-import numpy as np
 import os
-import pandas as pd
 
-WORKUNIT_PERSISTER_FILE_PREFIX = "wu_"
+WORKUNIT_FILE_PREFIX = "wu_"
 
 
 class Workunit(ConditionCollection):
@@ -41,7 +39,7 @@ class Workunit(ConditionCollection):
         self.out_dir = out_dir
         self.filename = filename
         if self.filename is None:
-            self.filename = WORKUNIT_PERSISTER_FILE_PREFIX + str(self)
+            self.filename = WORKUNIT_FILE_PREFIX + str(self)
         self.persister_path = os.path.join(self.out_dir, "%s.pcl" % self.filename)
         # File for this workunit
         self.persister = Persister(self.persister_path)
@@ -53,22 +51,25 @@ class Workunit(ConditionCollection):
         self.persister.dump(self)
 
     @classmethod
-    def deserialize(cls, path):
+    def deserialize(cls, workunit_str, out_dir=cn.EXPERIMENT_DIR):
         """
         Retrieves a previously saved Workunit.
 
         Parameters
         ----------
-        path: str (Path to a persister file)
-        
+        workunit_str: str (String representation of the workload)
+        out_dir: str (Directory for file)
+
         Returns
         -------
         Workunit
         """
+        filename = "%s%s.pcl" % (WORKUNIT_FILE_PREFIX, workunit_str)
+        path = os.path.join(out_dir, filename)
         persister = Persister(path)
         data = persister.load()
         return data
-    
+
     def equals(self, workunit):
         """
         Tests if two workunits have the same conditions and results.
@@ -76,7 +77,7 @@ class Workunit(ConditionCollection):
         Parameters
         ----------
         workunit: Workunit
-        
+
         Returns
         -------
         bool
@@ -103,7 +104,7 @@ class Workunit(ConditionCollection):
         Parameters
         ----------
         is_restart: bool
-        
+
         Returns
         -------
         Condition
@@ -120,7 +121,7 @@ class Workunit(ConditionCollection):
         Parameters
         ----------
         out_dir: str (directory to search)
-        
+
         Returns
         -------
         list-Workunit
@@ -128,12 +129,13 @@ class Workunit(ConditionCollection):
         ffiles = os.listdir(out_dir)
         workunits = []
         for ffile in ffiles:
-           if ffile[0:len(WORKUNIT_PERSISTER_FILE_PREFIX)]  \
-                 == WORKUNIT_PERSISTER_FILE_PREFIX:
+           if ffile[0:len(WORKUNIT_FILE_PREFIX)]  \
+                 == WORKUNIT_FILE_PREFIX:
                parts = os.path.splitext(ffile)
                if parts[1] == ".pcl":
-                   path = os.path.join(out_dir, ffile)
-                   workunits.append(cls.deserialize(path))
+                   filename = parts[0]
+                   workunit_str = filename.replace(WORKUNIT_FILE_PREFIX, "")
+                   workunits.append(cls.deserialize(workunit_str, out_dir=out_dir))
         return workunits
 
     def makeResultCsv(self, path=None):
@@ -154,7 +156,7 @@ class Workunit(ConditionCollection):
     def calcMultivaluedFactors(self):
         """
         Finds the factors for which there are multiple values.
-        
+
         Returns
         -------
         list-str
@@ -170,7 +172,7 @@ class Workunit(ConditionCollection):
         ----------
         path: str (path to file of workunits in string representation)
         kwargs: dict (optional arguments to use when constructing workunits)
-        
+
         Returns
         -------
         list-workunit
