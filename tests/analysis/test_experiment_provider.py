@@ -45,6 +45,11 @@ class TestExperimentProvider(unittest.TestCase):
         self.assertEqual(len(ser), 5)
         std = ser.std()
         self.assertLess(std, 5)
+
+    def testPlotConditionCounts(self):
+        if IGNORE_TEST:
+            return
+        self.provider.plotFactorCounts(is_plot=IS_PLOT)
         
 
     

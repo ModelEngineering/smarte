@@ -3,6 +3,7 @@
 import smarte.constants as cn
 
 from io import StringIO
+import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
@@ -22,10 +23,10 @@ class ExperimentProvider(object):
         self.path= os.path.join(directory, filename)
         self.is_filter = is_filter
         self.df = self.extractZipped()
-        self.conditions = list(cn.SD_CONDITIONS)
+        self.factors = list(cn.SD_CONDITIONS)
         if "num_latincube" in self.df.columns:
-            self.conditions.remove(cn.SD_LATINCUBE_IDX)
-            self.conditions.append("num_latincube")
+            self.factors.remove(cn.SD_LATINCUBE_IDX)
+            self.factors.append("num_latincube")
         if is_filter:
             self.filterUnsuccessfulExperiments()
             self.filterDuplicateConditions()
@@ -81,7 +82,7 @@ class ExperimentProvider(object):
         """
         Averages duplicate conditions.
         """
-        dfg = self.df.groupby(self.conditions).mean()
+        dfg = self.df.groupby(self.factors).mean()
         self.df = pd.DataFrame(dfg)
         self.df = self.df.reset_index()
         self._cleanDf()
@@ -103,8 +104,29 @@ class ExperimentProvider(object):
         df = pd.DataFrame(self.df.groupby(factor).count())
         return df[cn.SD_TOT_TIME]  # Pick a non-condition column for count values
 
-    def plotConditionCounts(self, is_plot=True):
+    def plotFactorCounts(self, is_plot=True, exclude_factors=[cn.SD_BIOMODEL_NUM]):
         """
-        Bar plots of counts of each condition value.
+        Bar plots of counts of each factor in the condition.
         """
-        pass
+        factors = [f for f in self.factors if not f in exclude_factors]
+        if cn.SD_METHOD in factors:
+            factors.remove(cn.SD_METHOD)
+            factors.append(cn.SD_METHOD)  # put on bottom row
+        num_plot = len(factors)
+        num_col = 3
+        num_row = num_plot//num_col
+        if num_row*num_col < num_plot:
+            num_row += 1
+        figure, axes = plt.subplots(num_row, num_col, figsize=(10,10))
+        for idx, factor in enumerate(factors):
+            icol = np.mod(idx, num_col)
+            irow = int(idx//num_col)
+            ax = axes[irow, icol]
+            ser = self.makeCountSeries(factor)
+            ser.plot.bar(ax=ax)
+            ax.set_title(factor)
+            ax.set_xlabel("")
+            ax.set_ylabel("")
+        if is_plot:
+            plt.show()
+     
