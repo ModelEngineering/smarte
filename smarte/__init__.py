@@ -7,3 +7,5 @@ from smarte.condition_collection import ConditionCollection
 from smarte.extended_dict import ExtendedDict
 from smarte.sbml_fitter import SBMLFitter
 from smarte.workunit import Workunit
+#
+from smarte.analysis.experiment_provider import ExperimentProvider
