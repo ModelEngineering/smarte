@@ -1,6 +1,7 @@
 """Provides experiment data contained in a zip archive"""
 
 import smarte.constants as cn
+from smarte.types.elemental_type import isStr
 
 from io import StringIO
 import matplotlib.pyplot as plt
@@ -9,20 +10,24 @@ import os
 import pandas as pd
 import zipfile
 
+ZIP_EXT = ".zip"
+
 
 class ExperimentProvider(object):
 
-    def __init__(self, filename="experiments.zip", directory=cn.EXPERIMENT_DIR,
+    def __init__(self, filenames=None, directory=cn.EXPERIMENT_DIR,
           is_filter=True):
         """
         Parameters
         ----------
-        filename: str (name of zipfile including extenstion)
+        filenames: list-str (names of zipfile including extenstion)
+            Defaults to all zip files in directory
         directory: str (directory containing the zipfile)
         """
-        self.path= os.path.join(directory, filename)
+        self.directory = directory
+        self.filenames = filenames
         self.is_filter = is_filter
-        self.df = self.extractZipped()
+        self.df = self.makeDataframe(filenames=self.filenames, directory=self.directory)
         self.factors = list(cn.SD_CONDITIONS)
         if "num_latincube" in self.df.columns:
             self.factors.remove(cn.SD_LATINCUBE_IDX)
@@ -40,23 +45,52 @@ class ExperimentProvider(object):
         new_df = self.df.loc[indices[:1000], :]
         new_df.to_csv("test_experiment_provider.csv")
 
-    def extractZipped(self):
+    @classmethod
+    def getZippaths(cls, filenames=None, directory=cn.EXPERIMENT_DIR):
+        """
+        Retrieves all zipfiles in the directory.
+        
+        Parameters
+        ----------
+        filenames: list-str
+        directory: str
+        
+        Returns
+        -------
+        list-str (paths to zipfiles)
+        """
+        if filenames is None:
+            ffiles = os.listdir(directory)
+            filenames = [f for f in ffiles if f[-4:] == ZIP_EXT]
+        elif isStr(filenames):
+            filenames = [filenames]
+        else:
+            filenames = list(filenames)
+        return [os.path.join(directory, f) for f in filenames]
+
+    @classmethod
+    def makeDataframe(cls, **kwargs):
         """
         Reads CSVs in a zipfile.
+        
+        Parameters
+        ----------
+        kwargs: dict (arguments for getZippaths)
         
         Returns
         -------
         pd.DataFrame
         """
         dfs = []
-        with zipfile.ZipFile(self.path) as myzip:
-            for ffile in myzip.namelist():
-                with myzip.open(ffile) as myfile:
-                    byte_lines = (myfile.readlines())
-                    lines = [l.decode() for l in byte_lines]
-                    lines = "\n".join(lines)
-                    df = pd.read_csv(StringIO(lines))
-                    dfs.append(df)
+        for zip_path in cls.getZippaths(**kwargs):
+            with zipfile.ZipFile(zip_path) as myzip:
+                for ffile in myzip.namelist():
+                    with myzip.open(ffile) as myfile:
+                        byte_lines = (myfile.readlines())
+                        lines = [l.decode() for l in byte_lines]
+                        lines = "\n".join(lines)
+                        df = pd.read_csv(StringIO(lines))
+                        dfs.append(df)
         return pd.concat(dfs)
 
     def _cleanDf(self):
@@ -118,15 +152,20 @@ class ExperimentProvider(object):
         if num_row*num_col < num_plot:
             num_row += 1
         figure, axes = plt.subplots(num_row, num_col, figsize=(10,10))
+        plt.subplots_adjust(hspace=0.4)
         for idx, factor in enumerate(factors):
             icol = np.mod(idx, num_col)
             irow = int(idx//num_col)
             ax = axes[irow, icol]
-            ser = self.makeCountSeries(factor)
+            ser = self.makeCountSeries(factor)/1000
+            ser.index = [str(i)[:5] if len(str(i)) > 5 else str(i) for i in ser.index]
             ser.plot.bar(ax=ax)
             ax.set_title(factor)
-            ax.set_xlabel("")
-            ax.set_ylabel("")
+            ax.set_xticklabels(ser.index, rotation=45)
+            if icol == 0:
+                ax.set_ylabel("count (1000s)")
+            else:
+                ax.set_ylabel("")
         if is_plot:
             plt.show()
      
