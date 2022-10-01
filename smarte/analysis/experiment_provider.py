@@ -11,6 +11,7 @@ import pandas as pd
 import zipfile
 
 ZIP_EXT = ".zip"
+MAX_LABELS = 5  # Maximum labels on a plot
 
 
 class ExperimentProvider(object):
@@ -161,7 +162,16 @@ class ExperimentProvider(object):
             ser.index = [str(i)[:5] if len(str(i)) > 5 else str(i) for i in ser.index]
             ser.plot.bar(ax=ax)
             ax.set_title(factor)
-            ax.set_xticklabels(ser.index, rotation=45)
+            labels = list(ser.index)
+            if len(labels) > MAX_LABELS:
+                new_labels = ["" for _ in range(len(labels))]
+                incr = len(labels)//MAX_LABELS
+                for idx in range(MAX_LABELS):
+                    pos = incr*idx
+                    new_labels[pos] = labels[pos]
+                new_labels[-1] = labels[-1]
+                labels = new_labels
+            ax.set_xticklabels(labels, rotation=45)
             if icol == 0:
                 ax.set_ylabel("count (1000s)")
             else:

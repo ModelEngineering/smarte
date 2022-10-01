@@ -64,10 +64,9 @@ class TestExperimentProvider(unittest.TestCase):
         self.assertLess(std, 5)
 
     def testPlotConditionCounts(self):
-        if IGNORE_TEST:
-            return
+        # TESTING
         self.init()
-        self.provider.plotFactorCounts(is_plot=IS_PLOT)
+        self.provider.plotFactorCounts(is_plot=IS_PLOT, exclude_factors=[])
 
 
 if __name__ == '__main__':
