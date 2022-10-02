@@ -38,7 +38,6 @@ class TestAnova(unittest.TestCase):
     def testContructor(self):
         if IGNORE_TEST:
             return
-        import pdb; pdb.set_trace()
 
 
 if __name__ == '__main__':

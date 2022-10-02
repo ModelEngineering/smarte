@@ -8,13 +8,21 @@ Three kinds of columns are considered:
   value_column contains values of what is being compared
 """
 
+import collections
 import numpy as np
 import pandas as pd
+from scipy.stats import f
 
 
 # DataFrame columns
 SSB = "ssb"  # sum of squares
 
+
+# stat: F ratio
+# sl: signicance level
+# wdf: within degrees of freedom
+# bdf: between degrees of freedom
+FStatistic = collections.namedtuple("FStatistic", "stat sl wdf bdf")
 
 class Anova(object):
 
@@ -35,19 +43,36 @@ class Anova(object):
         self.columns = [self.value_name, self.factor_name, self.replication_name]
         self.df = df[self.columns]
         self.dfg = self.df.groupby(factor_name)
+        self.value_ser = self.df[self.value_name]
         # Calculate statistics
+        self.num_tot = len(self.df)
         self.levels = list(self.dfg.indices.keys())
-        self.count_ser = pd.Series(self.dfg.count())
-        self.mean_ser = pd.Series(self.dfg.mean())
-        self.std_ser = pd.Series(self.dfg.std())
-        self.fstat = self.calcFstat()
+        self.num_level = len(self.levels)
+        tdf = self.dfg.count()
+        self.count_ser = tdf[self.value_name]
+        tdf = self.dfg.mean()
+        self.mean_ser = tdf[self.value_name]
+        tdf = self.dfg.std()
+        self.std_ser = tdf[self.value_name]
+        self.fstat = self._calcFstatistic()
 
-    def _calcFstat(self)
+    def _calcFstatistic(self):
         """
-        Calculates the Fstatistic
+        Calculates the Fstatisticistic
 
         Returns
         -------
+        FStatistic
         """
+        within_ssq = np.sum(self.std_ser*(self.count_ser - 1))
+        between_ssq = np.sum(self.count_ser*self.mean_ser**2)  \
+              - np.sum(self.value_ser**2)/self.num_tot
+        within_df = self.num_tot - self.num_level
+        stat = between_ssq/within_ssq
+        between_df = self.num_level - 1
+        sl = 1 - f.cdf(stat, within_df, between_df)
+        return FStatistic(stat=stat, sl=sl, wdf=within_df, bdf=between_df)
+
+        
         
  
