@@ -7,17 +7,19 @@ Three kinds of columns are considered:
   replication columns are factors that are treated as replications
   value_column contains values of what is being compared
 """
+import smarte.analysis.util as ut
 
 import collections
 import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.stats import f
 
 
 # DataFrame columns
-SSB = "ssb"  # sum of squares
 INSTANCE = "instance"
 SEPARATOR = "__"  # Separates names in instances
+MAX_LABEL = 5
 
 
 # stat: F ratio
@@ -80,9 +82,11 @@ class Anova(object):
         return FStatistic(stat=stat, sl=sl, wdf=within_df, bdf=between_df)
 
     @classmethod
-    def calcSl(cls, instance_names, df, factor_name, replication_name, value_name):
+    def plotSl(cls, instance_names, df, factor_name, replication_name, value_name,
+          is_plot=True, ax=None, marker_color="blue"):
         """
-        Calculates significance levels for all distinct alues of instance_names.
+        Calculates significance levels for all distinct alues of instance_names
+        and plots them.
 
         Parameters
         ----------
@@ -93,6 +97,7 @@ class Anova(object):
         df: pd.DataFrame
             index: instances
             columns: factor_name, replication_name
+        is_plot: bool
 
         Returns
         -------
@@ -115,6 +120,16 @@ class Anova(object):
             anova = Anova(t_df, factor_name, replication_name, value_name)
             sls.append(anova.fstat.sl)
         ser = pd.Series(sls, index=instance_idxs)
-        return ser
-            
-
+        if not is_plot:
+            return ser
+        # plot
+        labels = ut.subsetLabels(ser.index, MAX_LABEL)
+        if ax is None:
+            fig, ax = plt.subplots(1, figsize=(10, 10))
+        plot_ser = -np.log10(ser)
+        ax.xaxis.set_ticks(range(len(plot_ser)))
+        ax.set_xticklabels(labels, rotation=45)
+        ax.scatter(labels, plot_ser, marker="*", color=marker_color)
+        ax.plot([labels[0], labels[-1]], [2, 2], linestyle="--")
+        ax.set_ylabel("-log10 sl")
+        plt.show()

@@ -40,23 +40,29 @@ class TestAnova(unittest.TestCase):
             return
         self.assertGreater(self.anova.fstat.sl, 0)
 
-    def testCalcSl1(self):
+    def testPlotSl1(self):
         if IGNORE_TEST:
             return
-        sl_ser = anv.Anova.calcSl([cn.SD_MAX_FEV, cn.SD_METHOD], DF_FULL, FACTOR_NAME,
-              REPLICATION_NAME, VALUE_NAME)
+        sl_ser = anv.Anova.plotSl([cn.SD_MAX_FEV, cn.SD_METHOD], DF_FULL, FACTOR_NAME,
+              REPLICATION_NAME, VALUE_NAME, is_plot=False)
         self.assertEqual(len(sl_ser), 2)
 
-    def testCalcSl2(self):
+    def testPlotSl2(self):
         if IGNORE_TEST:
             return
         instance_names = [cn.SD_BIOMODEL_NUM, cn.SD_MAX_FEV, cn.SD_METHOD]
-        sl_ser = anv.Anova.calcSl(instance_names, 
-              DF_FULL, FACTOR_NAME, REPLICATION_NAME, VALUE_NAME)
+        sl_ser = anv.Anova.plotSl(instance_names, 
+              DF_FULL, FACTOR_NAME, REPLICATION_NAME, VALUE_NAME, is_plot=False)
         indices = list(sl_ser.index)
         self.assertEqual(indices[0].count(anv.SEPARATOR), len(instance_names) - 1)
         ser = sl_ser[sl_ser < 1.0]
         self.assertEqual(len(ser), 1)
+
+    def testPlotSl3(self):
+        if IGNORE_TEST:
+            return
+        _ = anv.Anova.plotSl([cn.SD_MAX_FEV, cn.SD_METHOD], DF_FULL, FACTOR_NAME,
+              REPLICATION_NAME, VALUE_NAME, is_plot=IS_PLOT)
 
 
 if __name__ == '__main__':

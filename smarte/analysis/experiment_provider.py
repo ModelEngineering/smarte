@@ -1,6 +1,7 @@
 """Provides experiment data contained in a zip archive"""
 
 import smarte.constants as cn
+import smarte.analysis.util as ut
 from smarte.types.elemental_type import isStr
 
 from io import StringIO
@@ -11,7 +12,7 @@ import pandas as pd
 import zipfile
 
 ZIP_EXT = ".zip"
-MAX_LABELS = 5  # Maximum labels on a plot
+MAX_LABEL = 5  # Maximum labels on a plot
 
 
 class ExperimentProvider(object):
@@ -162,15 +163,7 @@ class ExperimentProvider(object):
             ser.index = [str(i)[:5] if len(str(i)) > 5 else str(i) for i in ser.index]
             ser.plot.bar(ax=ax)
             ax.set_title(factor)
-            labels = list(ser.index)
-            if len(labels) > MAX_LABELS:
-                new_labels = ["" for _ in range(len(labels))]
-                incr = len(labels)//MAX_LABELS
-                for idx in range(MAX_LABELS):
-                    pos = incr*idx
-                    new_labels[pos] = labels[pos]
-                new_labels[-1] = labels[-1]
-                labels = new_labels
+            labels = ut.subsetLabels(ser.index, MAX_LABEL)
             ax.set_xticklabels(labels, rotation=45)
             if icol == 0:
                 ax.set_ylabel("count (1000s)")
