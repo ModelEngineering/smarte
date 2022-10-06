@@ -1,4 +1,5 @@
 from smarte.analysis import anova as anv
+import smarte as smt
 import smarte.constants as cn
 
 import os
@@ -40,19 +41,19 @@ class TestAnova(unittest.TestCase):
             return
         self.assertGreater(self.anova.fstat.sl, 0)
 
-    def testPlotSl1(self):
+    def testCalcSl1(self):
         if IGNORE_TEST:
             return
-        sl_ser = anv.Anova.plotSl([cn.SD_MAX_FEV, cn.SD_METHOD], DF_FULL, FACTOR_NAME,
-              REPLICATION_NAME, VALUE_NAME, is_plot=False)
+        sl_ser = anv.Anova.calcSl([cn.SD_MAX_FEV, cn.SD_METHOD], DF_FULL, FACTOR_NAME,
+              REPLICATION_NAME, VALUE_NAME)
         self.assertEqual(len(sl_ser), 2)
 
-    def testPlotSl2(self):
+    def testCalcSl2(self):
         if IGNORE_TEST:
             return
         instance_names = [cn.SD_BIOMODEL_NUM, cn.SD_MAX_FEV, cn.SD_METHOD]
-        sl_ser = anv.Anova.plotSl(instance_names, 
-              DF_FULL, FACTOR_NAME, REPLICATION_NAME, VALUE_NAME, is_plot=False)
+        sl_ser = anv.Anova.calcSl(instance_names, 
+              DF_FULL, FACTOR_NAME, REPLICATION_NAME, VALUE_NAME)
         indices = list(sl_ser.index)
         self.assertEqual(indices[0].count(anv.SEPARATOR), len(instance_names) - 1)
         ser = sl_ser[sl_ser < 1.0]
@@ -61,8 +62,16 @@ class TestAnova(unittest.TestCase):
     def testPlotSl3(self):
         if IGNORE_TEST:
             return
-        _ = anv.Anova.plotSl([cn.SD_MAX_FEV, cn.SD_METHOD], DF_FULL, FACTOR_NAME,
+        _ = anv.Anova.plotSl(DF_FULL, FACTOR_NAME,
               REPLICATION_NAME, VALUE_NAME, is_plot=IS_PLOT)
+
+    def testPlotSl4(self):
+        if IGNORE_TEST:
+            return
+        provider = smt.ExperimentProvider()
+        df = provider.df
+        anv.Anova.plotSl(df, cn.SD_METHOD,
+                  cn.SD_TS_INSTANCE, cn.SD_MEDIAN_ERR, is_plot=IS_PLOT)
 
 
 if __name__ == '__main__':
