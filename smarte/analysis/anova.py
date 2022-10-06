@@ -57,8 +57,8 @@ class Anova(object):
         self.count_ser = tdf[self.value_name]
         tdf = self.dfg.mean()
         self.mean_ser = tdf[self.value_name]
-        tdf = self.dfg.std()
-        self.std_ser = tdf[self.value_name]
+        tdf = self.dfg.var()
+        self.var_ser = tdf[self.value_name]
         self.fstat = self._calcFstatistic()
 
     def _calcFstatistic(self):
@@ -69,7 +69,7 @@ class Anova(object):
         -------
         FStatistic
         """
-        within_ssq = np.sum(self.std_ser*(self.count_ser - 1))
+        within_ssq = np.sum(self.var_ser*(self.count_ser - 1))
         between_ssq = np.sum(self.count_ser*self.mean_ser**2)  \
               - np.sum(self.value_ser**2)/self.num_tot
         within_df = self.num_tot - self.num_level
@@ -129,7 +129,7 @@ class Anova(object):
 
     @classmethod
     def plotSl(cls, df, factor_name, replication_name, value_name,
-          is_plot=True, ax=None, marker_color="blue"):
+          is_plot=True, ax=None, marker_color="blue", title_prefix=""):
         """
         Calculates significance levels for all distinct alues of instance_names
         and plots them.
@@ -155,6 +155,6 @@ class Anova(object):
         ax.plot([min(indices), max(indices)], [2, 2], linestyle="--")
         ax.set_xlabel(cn.SD_BIOMODEL_NUM)
         ax.set_ylabel("-log10 sl")
-        ax.set_title(factor_name)
+        ax.set_title(title_prefix + factor_name)
         if is_plot:
             plt.show()

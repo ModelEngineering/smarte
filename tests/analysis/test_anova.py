@@ -26,6 +26,7 @@ FACTOR_NAME = CAT_NUM_SPECIES
 REPLICATION_NAME = cn.SD_TS_INSTANCE
 VALUE_NAME = cn.SD_MEDIAN_ERR
 DF = DF_FULL[[FACTOR_NAME, REPLICATION_NAME, VALUE_NAME]]
+PROVIDER = smt.ExperimentProvider()
         
 
 #############################
@@ -68,10 +69,16 @@ class TestAnova(unittest.TestCase):
     def testPlotSl4(self):
         if IGNORE_TEST:
             return
-        provider = smt.ExperimentProvider()
-        df = provider.df
+        df = PROVIDER.df
         anv.Anova.plotSl(df, cn.SD_METHOD,
                   cn.SD_TS_INSTANCE, cn.SD_MEDIAN_ERR, is_plot=IS_PLOT)
+
+    def testCalcSlFull(self):
+        if IGNORE_TEST:
+            return
+        df = PROVIDER.df
+        sl_ser = anv.Anova.calcSl([cn.SD_METHOD, cn.SD_BIOMODEL_NUM],
+              df, cn.SD_NOISE_MAG, REPLICATION_NAME, VALUE_NAME)
 
 
 if __name__ == '__main__':
