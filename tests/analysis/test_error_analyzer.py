@@ -10,13 +10,12 @@ import unittest
 
 
 IGNORE_TEST = False
-IS_PLOT = False
+IS_PLOT = True
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_FILE = os.path.join(TEST_DIR, "test_anova.csv")
-df = pd.read_csv(TEST_FILE)
-df = df[ df["num_latincube"] == 1]
-df = df.set_index(cn.SD_BIOMODEL_NUM)
-SER = df[cn.SD_MEDIAN_ERR]
+TEST_FILENAME = "test_experiment_provider.zip"
+PROVIDER = smt.ExperimentProvider(directory=TEST_DIR, is_filter=True)
+SER = PROVIDER.df[cn.SD_MEDIAN_FRCERR]
+SER.name = cn.SD_MEDIAN_FRCERR
         
 
 #############################

@@ -5,6 +5,13 @@ from smarte.types.mv_dict import ALL
 import os
 import zipfile
 
+
+"""
+Metric notes
+     logerr = log2(predicted/actual)
+     frcerr = (predicted - actual)/actual
+"""
+
 END_TIME = 5  # Default simulation end time
 START_TIME = 0  # Default simulation start time
 TIME = "time"
@@ -18,13 +25,16 @@ SD_AVG_TIME = "avg_time"  #average time for an evaluation
 SD_BIOMODEL_NUM = "biomodel_num"  #number of the biomodel
 SD_COLUMNS_DELETED = "columns_deleted"  # Number of columns deleted in synthetic observational data
 SD_CNT = "cnt"  #count of instances ran
-SD_MAX_ERR = "max_err"  # parameter error with the largest absolute value
+SD_MAX_FRCERR = "max_frcerr"  # parameter error with the largest absolute value in frac
+SD_MAX_LOGERR = "max_logerr"  # largest absolute value in log ratio
 SD_MAX_FEV = "max_fev"  # Maximum number of function evaluations for an application
 #                         of a method. For multistart (latincube), this maximum
 #                         is used for each instance.
-SD_MEDIAN_ERR = "median_err"  # Median of the error values for a parameter
+SD_MEDIAN_FRCERR = "median_frcerr"  # Median of the frc error values for a parameter
+SD_MEDIAN_LOGERR = "median_logerr"  # Median of the log error values for a parameter
 SD_METHOD = "method"  # Name of fitting algorithm
-SD_MIN_ERR = "min_err"  # parameter error with the smallest absolute value
+SD_MIN_FRCERR = "min_frcerr"  # frc error with the smallest absolute value
+SD_MIN_LOGERR = "min_logerr"  # log ratio error with the smallest absolute value
 SD_NUM_SPECIES = "num_species"  #number of floating species
 SD_NUM_REACTION = "num_reaction"  #number of reactions
 SD_NUM_PARAMETER = "num_parameter"  #number of parameters
@@ -60,7 +70,9 @@ SD_CONDITIONS = list(SD_CONDITION_DCT.keys())
 SD_MODEL_DESCRIPTORS = [SD_NUM_SPECIES, SD_NUM_REACTION, SD_NUM_PARAMETER]
 SD_QUALIFIERS = list(SD_MODEL_DESCRIPTORS)
 SD_QUALIFIERS.extend(SD_CONDITIONS)
-SD_ERROR_METRICS =  [SD_MEDIAN_ERR, SD_MAX_ERR, SD_MIN_ERR, SD_RSSQ, ]
+SD_ERROR_METRICS =  [SD_MEDIAN_LOGERR, SD_MAX_LOGERR, SD_MIN_LOGERR, SD_RSSQ,
+      SD_MEDIAN_FRCERR, SD_MAX_FRCERR, SD_MIN_FRCERR,
+      ]
 SD_TIME_METRICS =  [SD_AVG_TIME, SD_CNT, SD_TOT_TIME, ]
 SD_METRICS = list(SD_ERROR_METRICS)
 SD_METRICS.extend(SD_TIME_METRICS)

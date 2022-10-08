@@ -137,15 +137,25 @@ class TestSBMLFitter(unittest.TestCase):
     def testGetAccuracies(self):
         if IGNORE_TEST:
             return
-        ser = self.sfitter.getAccuracies(TRUE_PARAMETERS)
-        self.assertTrue(isinstance(ser, pd.Series))
-        self.assertLess(np.abs(ser.mean()), 0.001)
+        self.init()
+        self.sfitter.fit()
+        frc_ser, log_ser = self.sfitter.getAccuracies(TRUE_PARAMETERS)
+        for ser in [frc_ser, log_ser]:
+            self.assertTrue(isinstance(ser, pd.Series))
+            self.assertLess(np.abs(ser.mean()), 0.001)
+        # Handle case where fitter fails
+        self.sfitter.fitter.final_params = None
+        frc_ser, log_ser = self.sfitter.getAccuracies(TRUE_PARAMETERS)
+        for ser in [frc_ser, log_ser]:
+            self.assertTrue(all([np.isnan(v) for v in frc_ser]))
         
     def testEvaluateFit(self):
         if IGNORE_TEST:
             return
+        self.init()
         sfitter = smt.SBMLFitter(MODEL, self.parameters, TS, is_collect=True,
               point_density=POINT_DENSITY)
+        sfitter.fit()
         dct = sfitter.evaluateFit(TRUE_PARAMETERS)
         self.assertTrue(isinstance(dct, dict))
         self.assertTrue("differential_evolution" in dct["method"])
@@ -157,6 +167,7 @@ class TestSBMLFitter(unittest.TestCase):
         parameter_dct = dict(PARAMETER_DCT)
         sfitter = smt.SBMLFitter(MODEL, self.parameters, TS,
               point_density=POINT_DENSITY, num_latincube=2, is_collect=True)
+        sfitter.fit()
         dct = sfitter.evaluateFit(TRUE_PARAMETERS)
         self.assertTrue("differential_evolution" in dct.values())
 
@@ -176,7 +187,8 @@ class TestSBMLFitter(unittest.TestCase):
         model_num = 12
         dct_0 = self.evaluateBiomodelFit(model_num, 0)
         dct_1 = self.evaluateBiomodelFit(model_num, 1)
-        self.assertGreater(np.abs(dct_1[cn.SD_MAX_ERR]), np.abs(dct_0[cn.SD_MAX_ERR]))
+        self.assertGreater(np.abs(dct_1[cn.SD_MAX_LOGERR]),
+              np.abs(dct_0[cn.SD_MAX_LOGERR]))
         self.assertEqual(dct_0["biomodel_num"], model_num)
         
     def testEvaluateBiomodelFitOpts(self):
@@ -185,7 +197,8 @@ class TestSBMLFitter(unittest.TestCase):
         model_num = 12
         dct_0 = self.evaluateBiomodelFit(model_num, 0)
         dct_1 = self.evaluateBiomodelFit(model_num, 1)
-        self.assertGreater(np.abs(dct_1[cn.SD_MAX_ERR]), np.abs(dct_0[cn.SD_MAX_ERR]))
+        self.assertGreater(np.abs(dct_1[cn.SD_MAX_LOGERR]),
+              np.abs(dct_0[cn.SD_MAX_LOGERR]))
         self.assertEqual(dct_0["biomodel_num"], model_num)
         
     def testEvaluateBiomodelFitLargeError(self):

@@ -113,11 +113,11 @@ class ReplicationAnalyzer(object):
             _, ax = plt.subplots()
         if is_min:
             # Number of species
-            ax.scatter(df[xaxis], df[cn.SD_MIN_ERR], color='g')
+            ax.scatter(df[xaxis], df[cn.SD_MIN_LOGERR], color='g')
         if is_median:
-            ax.scatter(df[xaxis], df[cn.SD_MEDIAN_ERR], color='b')
+            ax.scatter(df[xaxis], df[cn.SD_MEDIAN_LOGERR], color='b')
         if is_max:
-            ax.scatter(df[xaxis], df[cn.SD_MAX_ERR], color='purple')
+            ax.scatter(df[xaxis], df[cn.SD_MAX_LOGERR], color='purple')
         if is_log2_ratio:
             ax.set_ylabel('estimation error (log2 estimated/actual)')
         else:
@@ -186,13 +186,13 @@ class ReplicationAnalyzer(object):
               is_plot=False, **kwargs)
         # Histograms
         if is_plot:
-            ax4a.hist(self.df[cn.SD_MIN_ERR], bins=100, density=True,
+            ax4a.hist(self.df[cn.SD_MIN_LOGERR], bins=100, density=True,
                   histtype='step', cumulative=1,)
             ax4a.set_xlabel("min error")
-            ax4b.hist(self.df[cn.SD_MEDIAN_ERR], bins=100, density=True,
+            ax4b.hist(self.df[cn.SD_MEDIAN_LOGERR], bins=100, density=True,
                   histtype='step', cumulative=1,)
             ax4b.set_xlabel("median error")
-            ax4c.hist(self.df[cn.SD_MAX_ERR], bins=100, density=True,
+            ax4c.hist(self.df[cn.SD_MAX_LOGERR], bins=100, density=True,
                   histtype='step', cumulative=1,)
             ax4c.set_xlabel("max error")
         mgr.doFigOpts()

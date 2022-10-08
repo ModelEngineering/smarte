@@ -24,7 +24,7 @@ for value in DF_FULL[cn.SD_NUM_SPECIES]:
 DF_FULL[CAT_NUM_SPECIES] = values
 FACTOR_NAME = CAT_NUM_SPECIES
 REPLICATION_NAME = cn.SD_TS_INSTANCE
-VALUE_NAME = cn.SD_MEDIAN_ERR
+VALUE_NAME = cn.SD_MEDIAN_LOGERR
 DF = DF_FULL[[FACTOR_NAME, REPLICATION_NAME, VALUE_NAME]]
 PROVIDER = smt.ExperimentProvider()
         
@@ -71,7 +71,7 @@ class TestAnova(unittest.TestCase):
             return
         df = PROVIDER.df
         anv.Anova.plotSl(df, cn.SD_METHOD,
-                  cn.SD_TS_INSTANCE, cn.SD_MEDIAN_ERR, is_plot=IS_PLOT)
+                  cn.SD_TS_INSTANCE, cn.SD_MEDIAN_LOGERR, is_plot=IS_PLOT)
 
     def testCalcSlFull(self):
         if IGNORE_TEST:

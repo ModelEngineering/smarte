@@ -17,6 +17,8 @@ class ErrorAnalyzer(object):
         ser: pd.Series
             index: instance identifier
             values: error metric in log2 units
+            index.name: str (used on x-axis)
+            name: str (used on y-axis)
         """
         self.ser = ser.groupby(ser.index).mean()
 
@@ -34,7 +36,7 @@ class ErrorAnalyzer(object):
         ax.scatter(self.ser.index, self.ser, marker="*")
         #ax.set_xticks(np.arange(100, max(indices), 100))
         ax.set_xlabel(self.ser.index.name)
-        ax.set_ylabel("log2 error ratio")
+        ax.set_ylabel(self.ser.name)
         ax.set_title(title)
         if is_plot:
             plt.show()
@@ -52,7 +54,7 @@ class ErrorAnalyzer(object):
         if ax is None:
             fig, ax = plt.subplots(1, figsize=FIGSIZE)
         ax.hist(self.ser, **kwargs)
-        ax.set_xlabel("log2 error ratio")
+        ax.set_xlabel(self.ser.name)
         ax.set_title(title)
         if is_plot:
             plt.show()

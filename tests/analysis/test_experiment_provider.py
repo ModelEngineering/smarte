@@ -8,8 +8,8 @@ import numpy as np
 import unittest
 
 
-IGNORE_TEST = True
-IS_PLOT = True
+IGNORE_TEST = False
+IS_PLOT = False
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_FILENAME = "test_experiment_provider.zip"
 PROVIDER = smt.ExperimentProvider(directory=TEST_DIR, is_filter=True)
@@ -64,7 +64,8 @@ class TestExperimentProvider(unittest.TestCase):
         self.assertLess(std, 5)
 
     def testPlotConditionCounts(self):
-        # TESTING
+        if IGNORE_TEST:
+            return
         self.init()
         self.provider.plotFactorCounts(is_plot=IS_PLOT, exclude_factors=[])
 

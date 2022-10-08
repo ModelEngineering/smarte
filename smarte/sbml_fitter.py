@@ -147,7 +147,9 @@ class SBMLFitter():
     def getAccuracies(self, true_parameters):
         """
         Evaluates the accuracy of a fit by comparing fitted values with the
-        true value of parameters.
+        true value of parameters. Two accuracies are calculated:
+            frc = (predicted - actual)/actual
+            log ratio = log2 (predicted/actual)
 
         Parameters
         ----------
@@ -157,23 +159,39 @@ class SBMLFitter():
         -------
         pd.Series
             index: parameter name
-            value: fractional deviation from true value
+            value: fractional accuracy (frc)
+        pd.Series
+            index: parameter name
+            value: log ratio
         """
         if self.fitter is None:
             self.fit()
         parameter_dct = true_parameters.valuesdict()
-        self.fit()
         if self.fitter.final_params is None:
-            error_dct = {n: np.nan for n in 
+            frc_dct = {n: np.nan for n in 
                   true_parameters.valuesdict().keys()}
         else:
             value_dct = dict(self.fitter.final_params.valuesdict())
-            error_dct = {n: np.nan if v == 0 else np.log2(v/parameter_dct[n])
-                   for n, v in value_dct.items()}
+            frc_dct = {n: np.nan if parameter_dct[n] == 0
+                  else (v - parameter_dct[n])/parameter_dct[n]
+                  for n, v in value_dct.items()}
         # Calculate estimation errors
-        return pd.Series(error_dct, index=error_dct.keys())
+        frc_ser = pd.Series(frc_dct, index=frc_dct.keys())
+        if all([np.isnan(v) for v in frc_ser]):
+            log_ser = frc_ser.copy()
+        else:
+            log_ser = frc_ser.apply(lambda v: np.nan if v <= -1
+                  else np.log2(v + 1))
+        return frc_ser, log_ser
 
-    # FIXME: Only handles a single method
+    @staticmethod
+    def _calcErrorStatistics(ser):
+        # Returns: min, median, max of absolute values
+        ser = ser.apply(lambda v: np.abs(v))
+        sorted_values = sorted(ser.values, key=lambda v: np.abs(v))
+        return sorted_values[0], ser.median(), sorted_values[-1]
+
+    # TODO: Only handles a single method
     def evaluateFit(self, true_parameters):
         """
         Calculates fitter statistics.
@@ -198,14 +216,13 @@ class SBMLFitter():
             tot_time: total run time
         """
         true_parameters = self.subsetToMuteableParameters(true_parameters)
-        ser = self.getAccuracies(true_parameters)
-        abs_ser = ser.apply(lambda v: np.abs(v))
-        indices = list(abs_ser.index)
+        self.fit()
+        frc_ser, log_ser = self.getAccuracies(true_parameters)
         dct = {}
-        sorted_values = sorted(ser.values, key=lambda v: np.abs(v))
-        dct[cn.SD_MEDIAN_ERR] = ser.median()
-        dct[cn.SD_MAX_ERR] = sorted_values[-1]
-        dct[cn.SD_MIN_ERR] = sorted_values[0]
+        dct[cn.SD_MIN_LOGERR], dct[cn.SD_MEDIAN_LOGERR], dct[cn.SD_MAX_LOGERR]  \
+              = self._calcErrorStatistics(log_ser)
+        dct[cn.SD_MIN_FRCERR], dct[cn.SD_MEDIAN_FRCERR], dct[cn.SD_MAX_FRCERR]  \
+              = self._calcErrorStatistics(frc_ser)
         df_stats = self.fitter.plotPerformance(is_plot=False)
         indices = list(df_stats.index)
         # TODO: generalize to having multiple methods
