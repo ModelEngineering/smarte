@@ -76,12 +76,17 @@ SD_ERROR_METRICS =  [SD_MEDIAN_LOGERR, SD_MAX_LOGERR, SD_MIN_LOGERR, SD_RSSQ,
 SD_TIME_METRICS =  [SD_AVG_TIME, SD_CNT, SD_TOT_TIME, ]
 SD_METRICS = list(SD_ERROR_METRICS)
 SD_METRICS.extend(SD_TIME_METRICS)
-SD_METRICS.append(SD_STATUS)
 SD_ALL = list(SD_QUALIFIERS)
 SD_ALL.extend(SD_METRICS)
+SD_ALL.append(SD_STATUS)
 SD_ALL_DCT = {k: None for k in SD_ALL}
 {SD_ALL_DCT.update({k: v}) for k, v in SD_CONDITION_DCT.items()}
 # Field values
 SD_STATUS_SUCCESS = "Success!"
 # Miscellaneous
 VALUE_SEP = "--"
+# Other data column nammes
+REPL = "repl"  # replication number
+STD = "std"  # standard deviation
+MEAN = "mean"  # mean
+COUNT = "count"  # occurrence count

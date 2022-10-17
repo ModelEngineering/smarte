@@ -1,7 +1,9 @@
 import smarte as smt
 import smarte.constants as cn
+from smarte.persister import Persister
 
 import copy
+import matplotlib.pyplot as plt
 import os
 import pandas as pd
 import numpy as np
@@ -10,10 +12,18 @@ import unittest
 
 IGNORE_TEST = False
 IS_PLOT = False
+MAX_TS_INSTANCE = 2
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_FILENAME = "test_experiment_provider.zip"
-PROVIDER = smt.ExperimentProvider(directory=TEST_DIR, is_filter=True)
-
+TEST_PERSISTER = os.path.join(TEST_DIR, "test_experiment_provider.pcl")
+PERSISTER = Persister(TEST_PERSISTER)
+TEST_FILENAME = "test_experiment_provider1.zip"
+if PERSISTER.isExist():
+    PROVIDER = PERSISTER.load()
+else:
+    provider = smt.ExperimentProvider(is_filter=False)
+    test_df = provider._makeTestData(max_ts_instance=MAX_TS_INSTANCE)
+    PROVIDER = smt.ExperimentProvider(df=test_df, is_filter=True)
+    PERSISTER.dump(PROVIDER)
         
 
 #############################
@@ -52,22 +62,29 @@ class TestExperimentProvider(unittest.TestCase):
         self.init()
         provider = smt.ExperimentProvider(TEST_FILENAME, directory=TEST_DIR,
               is_filter=False)
-        self.assertLess(len(self.provider.df), len(provider.df))
+        self.assertLess(len(provider.df), len(self.provider.df))
 
     def testMakeCountSeries(self):
         if IGNORE_TEST:
             return
-        self.init()
-        ser = self.provider.makeCountSeries(cn.SD_TS_INSTANCE)
-        self.assertEqual(len(ser), 5)
-        std = ser.std()
-        self.assertLess(std, 5)
+        ser = PROVIDER.makeCountSeries(cn.SD_TS_INSTANCE)
+        self.assertEqual(len(ser), MAX_TS_INSTANCE)
 
     def testPlotConditionCounts(self):
         if IGNORE_TEST:
             return
         self.init()
         self.provider.plotFactorCounts(is_plot=IS_PLOT, exclude_factors=[])
+
+    def testCalcBestLatincubeFitter(self):
+        if IGNORE_TEST:
+            return
+        self.init()
+        df10 = self.provider.calcBestLatincubeFits(10)
+        df2 = self.provider.calcBestLatincubeFits(2)
+        plt.hist(df10[cn.SD_RSSQ], bins=200)
+        trues = [x <= y for x, y in zip (df10[cn.SD_RSSQ], df2[cn.SD_RSSQ])]
+        self.assertTrue(all(trues))
 
 
 if __name__ == '__main__':
