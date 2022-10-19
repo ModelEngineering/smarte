@@ -1,6 +1,7 @@
 """Provides experiment data contained in a zip archive"""
 
 import smarte.constants as cn
+import SBMLModel as mdl
 import smarte.util as ut
 import smarte.analysis.util as uut
 from smarte.types.elemental_type import isStr
@@ -15,6 +16,8 @@ import zipfile
 
 ZIP_EXT = ".zip"
 MAX_LABEL = 5  # Maximum labels on a plot
+DIR_PAT = "%s--%s"
+STATISTICS_FILE = "statistics.csv"
 # Deprecated symols
 NUM_LATINCUBE = "num_latincube"
 BLC_SUFFIX = "_blc"  # suffix for best latincube
@@ -270,4 +273,42 @@ class ExperimentProvider(object):
                 ax.set_ylabel("")
         if is_plot:
             plt.show()
+
+    def makeDataStatisticsDf(self, start_num=1, num_model=cn.NUM_BIOMODEL_MAX):
+        """
+        Creates a dataframe of statistics for the outputs of each model.
+
+        Parameters
+        ----------
+        start_num: int (starting model number)
+        num_model: int (number of models)
+
+        Returns
+        -------
+        pd.DataFrame
+            columns
+                cn.COUNT: count of output data values
+                cn.SSQ: sum of squared difference with mean of floating concentrations
+                cn.SD_MODEL_NUM: BioModels number
+        """
+        noise_mag = 0
+        dct = {n: [] for n in [cn.SD_BIOMODEL_NUM, cn.COUNT, cn.SSQ]}
+        for biomodel_num in range(start_num, start_num + num_model):
+            dir_name = DIR_PAT % (str(biomodel_num), str(noise_mag))
+            dir_path = os.path.join(cn.DATA_DIR, dir_name)
+            if not os.path.exists(dir_path):
+                continue
+            file_path = os.path.join(dir_path, STATISTICS_FILE)
+            if not os.path.isfile(file_path):
+                print("***Cannot find %s" % file_path)
+            df = pd.read_csv(file_path)
+            ssq = df[cn.SSQ].values[0]
+            count = df[cn.COUNT].values[0]
+            dct[cn.SSQ].append(ssq)
+            dct[cn.COUNT].append(count)
+            dct[cn.SD_BIOMODEL_NUM].append(biomodel_num)
+        result_df = pd.DataFrame(dct, columns=[cn.SD_BIOMODEL_NUM, cn.COUNT, cn.SSQ])
+        return result_df
+            
+       
      

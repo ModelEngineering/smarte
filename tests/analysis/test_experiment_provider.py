@@ -10,8 +10,8 @@ import numpy as np
 import unittest
 
 
-IGNORE_TEST = False
-IS_PLOT = False
+IGNORE_TEST = True
+IS_PLOT = True
 MAX_TS_INSTANCE = 2
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_PERSISTER = os.path.join(TEST_DIR, "test_experiment_provider.pcl")
@@ -85,6 +85,13 @@ class TestExperimentProvider(unittest.TestCase):
         plt.hist(df10[cn.SD_RSSQ], bins=200)
         trues = [x <= y for x, y in zip (df10[cn.SD_RSSQ], df2[cn.SD_RSSQ])]
         self.assertTrue(all(trues))
+
+    def testMakeDataStatisticsDf(self):
+        # TESTING
+        self.init()
+        df = self.provider.makeDataStatisticsDf()
+        self.assertGreater(len(df), 0)
+        self.assertEqual(len(df.columns), 3)
 
 
 if __name__ == '__main__':

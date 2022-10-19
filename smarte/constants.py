@@ -20,6 +20,7 @@ PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXPERIMENT_DIR = os.path.join(PROJECT_DIR, "experiments")
 DATA_DIR = os.path.join(PROJECT_DIR, "data")
 WORKUNITS_FILE = os.path.join(EXPERIMENT_DIR, "workunits.txt")
+NUM_BIOMODEL_MAX = 1160
 # Keys in statistics dictionary
 SD_AVG_TIME = "avg_time"  #average time for an evaluation
 SD_BIOMODEL_NUM = "biomodel_num"  #number of the biomodel
@@ -87,6 +88,5 @@ SD_STATUS_SUCCESS = "Success!"
 VALUE_SEP = "--"
 # Other data column nammes
 REPL = "repl"  # replication number
-STD = "std"  # standard deviation
-MEAN = "mean"  # mean
+SSQ = "ssq"
 COUNT = "count"  # occurrence count
